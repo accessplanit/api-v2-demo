@@ -50,13 +50,14 @@ This Blazor Server demo is built for **sales engineering and partner enablement*
 
 **Flow overview:**
 1. User signs in to the demo using the API v2 login endpoint.
-2. Server-side services add the **Accessplanit** auth header (Bearer token or API key) and call v2 endpoints. \[Developer Resources]
-3. Responses are shaped using `$select/$filter`, paged via `$top/$skip`, and presented in Blazor components. \[Developer Resources]
+2. See **AccessPlanitTokenClient.cs** on how to obtain an API Bearer Token or use an API Key.
+3. Server-side services add the **Accessplanit** auth header (Bearer token or API key) and call v2 endpoints. \[Developer Resources]
+4. Responses are shaped using `$select/$filter`, paged via `$top/$skip`, and presented in Blazor components. \[Developer Resources]
 
 ---
 
 ## Live Demo / Repository
-- **Repository:** https://github.com/accessplanit/api-v2-commercial-integration-demo
+- **Repository:** https://github.com/accessplanit/api-v2-demo
 
 ---
 
@@ -69,7 +70,7 @@ This Blazor Server demo is built for **sales engineering and partner enablement*
 ## Getting Started
 ```bash
 # Clone
-git clone https://github.com/accessplanit/api-v2-commercial-integration-demo.git
+git clone https://github.com/accessplanit/api-v2-demo.git
 cd <project-folder>
 
 # Restore & build
