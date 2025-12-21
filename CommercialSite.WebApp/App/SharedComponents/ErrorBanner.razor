@@ -1,0 +1,80 @@
+﻿@inject StateManagementService StateManagementService
+
+
+@if (!string.IsNullOrWhiteSpace(StateManagementService.LatestErrorMessage))
+{
+    <div class="error-banner" role="alert" aria-live="polite">
+        <div class="error-banner__icon" aria-hidden="true">⚠️</div>
+        <div class="error-banner__content">@StateManagementService.LatestErrorMessage</div>
+        <button class="error-banner__close"
+                type="button"
+                @onclick="Dismiss"
+                aria-label="Dismiss error">
+            ✖
+        </button>
+    </div>
+}
+
+@code {
+    protected override void OnInitialized()
+    {
+        // Subscribe to state updates
+        StateManagementService.OnChange += HandleStateChanged;
+    }
+
+    private void HandleStateChanged()
+        => InvokeAsync(StateHasChanged); // ensure on UI thread
+
+    private void Dismiss()
+        => StateManagementService.ClearLatestErrorMessage();
+
+    // Avoid memory leaks by unsubscribing when component is disposed
+    public void Dispose()
+    {
+        StateManagementService.OnChange -= HandleStateChanged;
+    }
+}
+
+<style>
+
+    .error-banner {
+        display: flex;
+        align-items: flex-start;
+        gap: .75rem;
+        background: #FDEDED;
+        border: 1px solid #F5C2C7;
+        color: #842029;
+        padding: .75rem 1rem;
+        border-radius: .375rem;
+        box-shadow: 0 1px 2px rgba(0,0,0,.06);
+        margin: .5rem 0;
+    }
+
+    .error-banner__icon {
+        font-size: 1.25rem;
+        line-height: 1.25rem;
+        margin-top: .125rem;
+    }
+
+    .error-banner__content {
+        flex: 1 1 auto;
+        word-wrap: break-word;
+    }
+
+    .error-banner__close {
+        background: transparent;
+        border: none;
+        color: inherit;
+        font-size: 1rem;
+        cursor: pointer;
+        padding: .25rem;
+        line-height: 1;
+    }
+
+        .error-banner__close:focus {
+            outline: 2px solid #842029;
+            outline-offset: 2px;
+        }
+
+</style>
+

@@ -1,0 +1,38 @@
+﻿@using CommercialSite.WebApp.App.SharedComponents;
+
+@inherits LayoutComponentBase
+@inject StateManagementService StateManagementService
+
+
+<div id="main-layout">
+    <div id="sidebar-content">
+        <SideNavBar />
+    </div>
+    <div id="main-content">
+        <div id="header" class="mx-4">
+            <CascadingValue Value="IsLoggedIn">
+                <HeaderNavBar/>
+            </CascadingValue>
+        </div>
+        <div id="content" class="m-4">
+            <ErrorBanner />
+            @Body
+        </div>
+        <CommercialSite.WebApp.App.Basket.ShoppingBasket/>
+    </div>
+</div>
+
+@code {
+
+    public bool IsLoggedIn { get; set; }
+
+    protected override void OnInitialized()
+    {
+        IsLoggedIn = StateManagementService.IsLoggedIn;
+    }
+}
+
+
+
+
+

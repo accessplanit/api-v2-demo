@@ -1,0 +1,51 @@
+﻿@inject StateManagementService StateManagementService
+
+@if (IsLoggedIn)
+{
+    <div style="background-color: #fff;">
+        <a class="header-nav-button dropdown nav-link dropdown-toggle d-flex align-content-center flex-wrap flex-column" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="lni lni-user"></i>
+            <div>Account</div>
+        </a>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="account">My Account</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="/logout">Logout</a></li>
+        </ul>
+    </div>
+}
+else
+{
+    <div>
+        <a class="header-nav-button nav-link d-flex align-content-center flex-wrap flex-column" href="login">
+            <i class="lni lni-user"></i>
+            <div>Login</div>
+        </a>
+    </div>
+}
+
+@code {
+    private bool IsLoggedIn { get; set; }
+
+    protected override void OnInitialized()
+    {
+        // Initial state setup
+        IsLoggedIn = StateManagementService.IsLoggedIn;
+
+        // Subscribe to state change notifications
+        StateManagementService.OnChange += StateHasChangedSafely;
+    }
+
+    // This method ensures the state is updated in a thread-safe way
+    private void StateHasChangedSafely()
+    {
+        IsLoggedIn = StateManagementService.IsLoggedIn;
+        InvokeAsync(() => StateHasChanged());
+    }
+
+    public void Dispose()
+    {
+        // Unsubscribe from state changes to avoid memory leaks
+        StateManagementService.OnChange -= StateHasChangedSafely;
+    }
+}

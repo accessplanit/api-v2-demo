@@ -1,0 +1,39 @@
+#main-layout[b-pe0niwm69f] {
+	display: flex;
+	flex-direction: row;
+	height: 100vh;	
+}
+
+	#main-layout > *[b-pe0niwm69f] {
+		display: flex;
+	}
+
+#sidebar-content[b-pe0niwm69f] {
+	height: 100vh;
+	position: fixed;
+	top: 0;
+	left: 0;
+	background: #f8f9fa;
+	overflow-y: auto;	
+	width: 250px;
+}
+
+#main-content[b-pe0niwm69f] {
+	flex-flow: column;
+	flex: 1;
+	margin-left: 250px;
+	/*margin: 0; checkout*/
+	/*padding:0; course search*/
+	padding: 5px;
+	transition: margin-right 0.5s;
+	overflow-x: hidden;
+}
+
+/*#content {
+	flex: 1;
+	padding: 10px;
+}*/
+
+.container[b-pe0niwm69f] {
+	display: flex;
+}

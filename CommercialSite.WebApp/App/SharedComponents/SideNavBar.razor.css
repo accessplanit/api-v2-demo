@@ -1,0 +1,123 @@
+﻿li {
+	list-style: none;
+}
+
+	li:hover {
+		cursor: pointer;
+		background-color: #258cfb;
+		color: white;
+	}
+
+	li:hover > a {
+		color: white;
+	}
+
+ul {
+	padding: 0;
+	margin: 0;
+}
+
+#wrapper {
+	background-color: #0c1b33;
+	width: 100%;
+	display:flex;
+}
+
+#sidebar {
+	transition: all 0.35s ease-in-out;
+	width: 70px;
+	min-width: 70px;
+	flex-direction: column;
+	overflow-x: hidden;
+}
+
+#sidebar-header{
+	display: flex;
+	flex-direction: row;
+	height: 60px;
+}
+
+#sidebar-collapse-button {
+	background-color: #0c1b33;
+	border: none;
+	color: white;
+	font-size: 1.5rem;
+	padding: 1rem 1.5rem;
+}
+
+#sidebar-logo {
+	color: white;
+	font-size: 1.5rem;
+	margin: auto 0;
+	user-select: none;
+}
+
+#sidebar-nav-links {
+	display: flex;
+	flex-direction: column;
+}
+
+.sidebar-link {
+	height: 45px;
+	width: 100%;
+}
+
+	.sidebar-link ::deep a {
+		height: 45px;
+		display: flex;
+		flex-direction: row;
+		user-select: none;
+		color: white;
+		text-decoration: none;
+		padding: .625rem 1.525rem;
+		white-space: nowrap;
+		width: 100%;
+		border-left: 3px solid transparent;
+	}
+
+		.sidebar-link ::deep a.active {
+			border-left: 3px solid #3b7ddd;
+			background-color: #163662;
+		}
+
+	.sidebar-link ::deep a > i {
+		display: flex;
+		font-size: 1.1rem;
+		margin-right: .75rem;
+		align-items: center;
+	}
+
+	.sidebar-link:hover ::deep a:not(.active) {
+		color: black;
+	}
+
+.sidebar-dropdown {
+	transition: all 0.25s ease-in-out;
+}
+
+.sidebar-dropdown > li:hover {
+	background-color: #808080;
+}
+
+#courses-dropdown {
+	display: flex; 
+	flex-direction: column;
+}
+
+.dropdown-toggle::after {
+	margin: auto 0 auto auto;
+}
+
+#courses-dropdown:hover * {
+	color: black;
+}
+
+#sidebar.expand {
+	width: 250px;
+	min-width: 250px;
+}
+
+#sidebar:not(.expand) #sidebar-logo,
+#sidebar:not(.expand) .sidebar-link ::deep a > span {
+	display: none;
+}

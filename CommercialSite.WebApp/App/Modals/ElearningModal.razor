@@ -1,0 +1,52 @@
+﻿@inject StateManagementService StateManagementService
+<div class="modal @modalClass" tabindex="-1" role="dialog" style="display:@modalDisplay; overflow-y: auto;">
+    <div class="modal-dialog modal-fullscreen" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">ELearning Launcher</h5>
+                <button class="badge bg-danger close-button" @onclick="() => Close()">X</button>
+            </div>
+            <div class="modal-body p-0">
+                @if (!string.IsNullOrEmpty(packageUrl))
+                {
+                    <iframe src="@packageUrl"
+                            width="100%"
+                            height="100%"
+                            style="border: none; min-height: 100vh;">
+                    </iframe>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (showBackdrop)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    string packageUrl = "";
+
+    private string modalDisplay = "none;";
+    private string modalClass = "";
+    private bool showBackdrop = false;
+
+    public void Open(string url)
+    {
+        modalDisplay = "block;";
+        modalClass = "show";
+        showBackdrop = true;
+        packageUrl = url;
+        StateHasChanged();
+    }
+
+    public void Close()
+    {
+        modalDisplay = "none";
+        modalClass = "";
+        showBackdrop = false;
+        StateHasChanged();
+    }
+
+}

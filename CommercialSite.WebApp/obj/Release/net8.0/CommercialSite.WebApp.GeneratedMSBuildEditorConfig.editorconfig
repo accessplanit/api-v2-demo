@@ -1,0 +1,89 @@
+is_global = true
+build_property.TargetFramework = net8.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = true
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = 
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property._SupportedPlatformList = Linux,macOS,Windows
+build_property.RootNamespace = CommercialSite.WebApp
+build_property.RootNamespace = CommercialSite.WebApp
+build_property.ProjectDir = C:\Users\StephenHelvin\source\repos\accessplanit-craig\Commercial-Site-Rock\CommercialSite.WebApp\
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 
+build_property.RazorLangVersion = 8.0
+build_property.SupportLocalizedComponentNames = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+build_property.MSBuildProjectDirectory = C:\Users\StephenHelvin\source\repos\accessplanit-craig\Commercial-Site-Rock\CommercialSite.WebApp
+build_property._RazorSourceGeneratorDebug = 
+build_property.EffectiveAnalysisLevelStyle = 8.0
+build_property.EnableCodeStyleSeverity = 
+
+[C:/Users/StephenHelvin/source/repos/accessplanit-craig/Commercial-Site-Rock/CommercialSite.WebApp/App/App.razor]
+build_metadata.AdditionalFiles.TargetPath = QXBwXEFwcC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/StephenHelvin/source/repos/accessplanit-craig/Commercial-Site-Rock/CommercialSite.WebApp/App/Courses/Pages/CoursesDashboard.razor]
+build_metadata.AdditionalFiles.TargetPath = QXBwXENvdXJzZXNcUGFnZXNcQ291cnNlc0Rhc2hib2FyZC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/StephenHelvin/source/repos/accessplanit-craig/Commercial-Site-Rock/CommercialSite.WebApp/App/Index.razor]
+build_metadata.AdditionalFiles.TargetPath = QXBwXEluZGV4LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/StephenHelvin/source/repos/accessplanit-craig/Commercial-Site-Rock/CommercialSite.WebApp/App/Modals/AddDelegateModal.razor]
+build_metadata.AdditionalFiles.TargetPath = QXBwXE1vZGFsc1xBZGREZWxlZ2F0ZU1vZGFsLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/StephenHelvin/source/repos/accessplanit-craig/Commercial-Site-Rock/CommercialSite.WebApp/App/Routes.razor]
+build_metadata.AdditionalFiles.TargetPath = QXBwXFJvdXRlcy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/StephenHelvin/source/repos/accessplanit-craig/Commercial-Site-Rock/CommercialSite.WebApp/App/SharedComponents/ShoppingBasket.razor]
+build_metadata.AdditionalFiles.TargetPath = QXBwXFNoYXJlZENvbXBvbmVudHNcU2hvcHBpbmdCYXNrZXQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/StephenHelvin/source/repos/accessplanit-craig/Commercial-Site-Rock/CommercialSite.WebApp/App/Users/Pages/Logout.razor]
+build_metadata.AdditionalFiles.TargetPath = QXBwXFVzZXJzXFBhZ2VzXExvZ291dC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/StephenHelvin/source/repos/accessplanit-craig/Commercial-Site-Rock/CommercialSite.WebApp/App/Users/Pages/UserDetails.razor]
+build_metadata.AdditionalFiles.TargetPath = QXBwXFVzZXJzXFBhZ2VzXFVzZXJEZXRhaWxzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/StephenHelvin/source/repos/accessplanit-craig/Commercial-Site-Rock/CommercialSite.WebApp/App/_Imports.razor]
+build_metadata.AdditionalFiles.TargetPath = QXBwXF9JbXBvcnRzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/StephenHelvin/source/repos/accessplanit-craig/Commercial-Site-Rock/CommercialSite.WebApp/App/Invoices/Invoice.razor]
+build_metadata.AdditionalFiles.TargetPath = QXBwXEludm9pY2VzXEludm9pY2UucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-625l3m2e2i
+
+[C:/Users/StephenHelvin/source/repos/accessplanit-craig/Commercial-Site-Rock/CommercialSite.WebApp/App/Layouts/MainLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = QXBwXExheW91dHNcTWFpbkxheW91dC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-pe0niwm69f
+
+[C:/Users/StephenHelvin/source/repos/accessplanit-craig/Commercial-Site-Rock/CommercialSite.WebApp/App/SharedComponents/BasketButton.razor]
+build_metadata.AdditionalFiles.TargetPath = QXBwXFNoYXJlZENvbXBvbmVudHNcQmFza2V0QnV0dG9uLnJhem9y
+build_metadata.AdditionalFiles.CssScope = b-ti4f6wdc1g
+
+[C:/Users/StephenHelvin/source/repos/accessplanit-craig/Commercial-Site-Rock/CommercialSite.WebApp/App/SharedComponents/HeaderNavBar.razor]
+build_metadata.AdditionalFiles.TargetPath = QXBwXFNoYXJlZENvbXBvbmVudHNcSGVhZGVyTmF2QmFyLnJhem9y
+build_metadata.AdditionalFiles.CssScope = b-jdw2r9ycp2
+
+[C:/Users/StephenHelvin/source/repos/accessplanit-craig/Commercial-Site-Rock/CommercialSite.WebApp/App/SharedComponents/SideNavBar.razor]
+build_metadata.AdditionalFiles.TargetPath = QXBwXFNoYXJlZENvbXBvbmVudHNcU2lkZU5hdkJhci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-sb3a70pcy4
+
+[C:/Users/StephenHelvin/source/repos/accessplanit-craig/Commercial-Site-Rock/CommercialSite.WebApp/App/SharedComponents/UserAccountNavButton.razor]
+build_metadata.AdditionalFiles.TargetPath = QXBwXFNoYXJlZENvbXBvbmVudHNcVXNlckFjY291bnROYXZCdXR0b24ucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-sd855pan4d
+
+[C:/Users/StephenHelvin/source/repos/accessplanit-craig/Commercial-Site-Rock/CommercialSite.WebApp/App/Users/Pages/Account.razor]
+build_metadata.AdditionalFiles.TargetPath = QXBwXFVzZXJzXFBhZ2VzXEFjY291bnQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-mht2e7cd5q
+
+[C:/Users/StephenHelvin/source/repos/accessplanit-craig/Commercial-Site-Rock/CommercialSite.WebApp/App/Users/Pages/Login.razor]
+build_metadata.AdditionalFiles.TargetPath = QXBwXFVzZXJzXFBhZ2VzXExvZ2luLnJhem9y
+build_metadata.AdditionalFiles.CssScope = b-g949xfya2i

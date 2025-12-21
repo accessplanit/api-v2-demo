@@ -1,0 +1,82 @@
+﻿@inject StateManagementService StateManagementService
+<div class="modal @modalClass" tabindex="-1" role="dialog" style="display:@modalDisplay; overflow-y: auto;">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                @if (BookingData is not null)
+                {
+                    <h5 class="modal-title">View Booking</h5>
+                }
+                <button class="badge bg-danger close-button" @onclick="() => Close()">X</button>
+            </div>
+            <div class="modal-body">
+                @if (BookingData is not null)
+                {
+                        <div class="card mt-3">
+                            <div class="w-100 d-flex justify-content-between px-3 py-2 heading fw-bold show">Booking Summary</div>
+                            <div class="collapse multi-collapse show p-3">
+                                @((MarkupString)BookingData.BookingSummary)
+                            </div>
+                        </div>
+
+                        <div class="card mt-3">
+                            <div class="w-100 d-flex justify-content-between px-3 py-2 heading fw-bold show">Booking</div>
+                            <div class="collapse multi-collapse show p-3">
+                                <p><strong>Reference:</strong> @BookingData.ID</p>
+                                <p><strong>Booking Date:</strong> @BookingData.DateCreated</p>
+                                <p><strong>Booking Status</strong> @BookingData.BookingStatus</p>
+                                <p><strong>Booking Type</strong> @BookingData.BookingType</p>
+                            </div>
+                        </div>
+
+                        <div class="card mt-3">
+                            <div class="w-100 d-flex justify-content-between px-3 py-2 heading fw-bold show">Information</div>
+                            <div class="collapse multi-collapse show p-3">
+                                <p><strong>PO Number:</strong> @BookingData.PONumber</p>
+                            </div>
+                        </div>
+
+                        <div class="card mt-3">
+                            <div class="w-100 d-flex justify-content-between px-3 py-2 heading fw-bold show">Bookers</div>
+                            <div class="collapse multi-collapse show p-3">
+                                <p><strong>Booking Agent:</strong> @BookingData.AgentName</p>
+                                <p><strong>Booking User:</strong> @BookingData.BookingUserName</p>
+                            </div>
+                        </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (showBackdrop)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+
+    private Models.CourseDateBooking? BookingData;
+
+    private string modalDisplay = "none;";
+    private string modalClass = "";
+    private bool showBackdrop = false;
+
+    public void Open(CourseDateBooking booking)
+    {
+        modalDisplay = "block;";
+        modalClass = "show";
+        showBackdrop = true;
+        BookingData = booking;
+        StateHasChanged();
+    }
+
+    public void Close()
+    {
+        modalDisplay = "none";
+        modalClass = "";
+        showBackdrop = false;
+        StateHasChanged();
+    }
+
+}

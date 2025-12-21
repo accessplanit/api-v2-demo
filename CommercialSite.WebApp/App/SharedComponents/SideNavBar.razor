@@ -1,0 +1,74 @@
+﻿@inject IJSRuntime JSRuntime
+@inject StateManagementService StateManagementService   
+
+<div id="wrapper">
+    <aside id="sidebar" class="expand">
+        <div id="sidebar-header d-flex align-items-center align-content-center">            
+            <img class="p-3" src="images/accessplanit_logo.svg" />
+        </div>
+        <ul id="sidebar-nav-links">
+            @if (StateManagementService.IsLoggedIn)
+            {
+            <li>
+                <div class="sidebar-link">
+                    <NavLink href="" Match="NavLinkMatch.All">
+                        <i class="lni lni-home"></i>
+                        <span>My Portal</span>
+                    </NavLink>
+                </div>
+            </li>
+                <li>
+                    <div class="sidebar-link">
+                        <NavLink href="courses">
+                            <i class="lni lni-book"></i>
+                            <span>Courses</span>
+                        </NavLink>
+                    </div>
+                </li>
+             } 
+        </ul>
+    </aside>
+    
+</div>
+
+@code {
+    private bool IsLoggedIn { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if(firstRender)
+            await JSRuntime.InvokeVoidAsync("initializeSidebarCollapse");
+    }
+
+    protected override void OnInitialized()
+    {
+        // Initial state setup
+        IsLoggedIn = StateManagementService.IsLoggedIn;
+
+        // Subscribe to state change notifications
+        StateManagementService.OnChange += StateHasChangedSafely;
+    }
+
+    // This method ensures the state is updated in a thread-safe way
+    private void StateHasChangedSafely()
+    {
+        IsLoggedIn = StateManagementService.IsLoggedIn;
+        InvokeAsync(() => StateHasChanged());
+    }
+
+    public void Dispose()
+    {
+        // Unsubscribe from state changes to avoid memory leaks
+        StateManagementService.OnChange -= StateHasChangedSafely;
+    }
+}
+
+<style>
+    .sidebar-link > a {
+        align-items: center;
+    }
+
+    .sidebar-link > a:hover {
+        color: white !important;
+    }    
+</style>

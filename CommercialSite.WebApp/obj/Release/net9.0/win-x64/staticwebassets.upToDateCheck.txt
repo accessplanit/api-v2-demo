@@ -1,0 +1,11 @@
+C:\Users\StephenHelvin\source\repos\accessplanit-craig\Commercial-Site-Rock\CommercialSite.WebApp\wwwroot\bootstrap\bootstrap.min.css.map
+C:\Users\StephenHelvin\source\repos\accessplanit-craig\Commercial-Site-Rock\CommercialSite.WebApp\wwwroot\images\accessplanit_logo.svg
+C:\Users\StephenHelvin\source\repos\accessplanit-craig\Commercial-Site-Rock\CommercialSite.WebApp\wwwroot\JavaScript.js
+C:\Users\StephenHelvin\source\repos\accessplanit-craig\Commercial-Site-Rock\CommercialSite.WebApp\wwwroot\bootstrap\bootstrap.min.css
+C:\Users\StephenHelvin\source\repos\accessplanit-craig\Commercial-Site-Rock\CommercialSite.WebApp\wwwroot\app.css
+wwwroot\app.css
+wwwroot\bootstrap\bootstrap.min.css
+wwwroot\bootstrap\bootstrap.min.css.map
+wwwroot\favicon.png
+wwwroot\images\accessplanit_logo.svg
+wwwroot\JavaScript.js

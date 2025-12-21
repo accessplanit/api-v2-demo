@@ -1,0 +1,24 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/CommercialSite.WebApp/.vs
+/.vs/api-v2-demo/CopilotIndices/18.0.934.24903/CodeChunks.db
+/.vs/api-v2-demo/CopilotIndices/18.0.934.24903/CodeChunks.db-shm
+/.vs/api-v2-demo/CopilotIndices/18.0.934.24903/CodeChunks.db-wal
+/.vs/api-v2-demo/CopilotIndices/18.0.934.24903/SemanticSymbols.db
+/.vs/api-v2-demo/CopilotIndices/18.0.934.24903/SemanticSymbols.db-shm
+/.vs/api-v2-demo/CopilotIndices/18.0.934.24903/SemanticSymbols.db-wal
+/.vs/api-v2-demo.slnx/FileContentIndex/2831d7a3-c31c-4532-877f-1e341c78c492.vsidx
+/.vs/api-v2-demo.slnx/FileContentIndex/53711278-15da-4b7a-862f-b38d3906c932.vsidx
+/.vs/api-v2-demo.slnx/FileContentIndex/d9f78f01-9700-4c9a-9b12-120a00768cb2.vsidx
+/.vs/api-v2-demo.slnx/v18/.wsuo
+/.vs/api-v2-demo.slnx/v18/DocumentLayout.json
+/.vs/slnx.sqlite
+/.vs/VSWorkspaceState.json
+/.vs/api-v2-demo.slnx/FileContentIndex/e4c521c9-9928-47c9-af66-5a7bea975870.vsidx
+/.vs/api-v2-demo.slnx/FileContentIndex/e91ec3da-78ae-4f02-b579-6558bea60739.vsidx
+/.vs/api-v2-demo.slnx/FileContentIndex/96a585bf-bd70-4fa3-95c1-289028ff7773.vsidx
+*.sqlite-journal
+/.vs/api-v2-demo.slnx/FileContentIndex/f86c2370-8b00-4763-8588-6359305cebd9.vsidx
+/.vs/api-v2-demo.slnx/FileContentIndex

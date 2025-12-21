@@ -1,0 +1,37 @@
+.expandable:hover[b-mht2e7cd5q] {
+	background-color: #258cfb;
+	color: #fff;
+}
+
+.form-label[b-mht2e7cd5q] {
+	font-weight: bold;
+}
+
+.save-button[b-mht2e7cd5q] {
+	width: 100px;
+} 
+
+.heading[b-mht2e7cd5q] {
+	background-color: #e3e3e0;
+	border-radius: 5.4px;
+}
+
+.show[b-mht2e7cd5q] {
+	border-radius: 5.4px 5.4px 0px 0px;
+}
+
+.rotate-icon[b-mht2e7cd5q] {
+	transition: transform 0.3s ease;
+}
+
+a[aria-expanded="true"] 
+.rotate-icon[b-mht2e7cd5q] {
+	transform: rotate(180deg);
+}
+
+.card[b-mht2e7cd5q] {
+	background: #fff;
+	border: 1px solid #E5E7EB;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+	padding: 0px;
+}

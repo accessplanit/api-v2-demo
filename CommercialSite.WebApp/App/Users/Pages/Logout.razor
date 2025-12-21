@@ -1,0 +1,21 @@
+﻿@page "/logout";
+
+@layout MainLayout
+
+@inject StateManagementService StateManagementService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+
+<h3>Logging out...</h3>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            StateManagementService.Logout();
+            await ((ApiAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsLoggedOut();
+            NavigationManager.NavigateTo("/");
+        }
+    }
+}

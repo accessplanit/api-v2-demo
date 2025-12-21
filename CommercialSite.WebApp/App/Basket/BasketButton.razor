@@ -1,0 +1,83 @@
+﻿@inject StateManagementService StateManagementService
+@inject AccessPlanitAPIBasketClient basketClient
+
+@if (IsLoggedIn)
+{
+    <button class="basket-button position-relative mx-2" @onclick="HandleClick">
+        @if (StateManagementService.Basket != null && StateManagementService.Basket.Items.Any())
+        {
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger items-count-badge">
+                @StateManagementService.Basket?.Items.Count()
+                <span class="visually-hidden">Items</span>
+            </span>
+        }
+        <i class="lni lni-cart"></i>
+        <span>Basket</span>
+    </button>
+}
+
+@code {
+        
+    [Inject] private IJSRuntime JS { get; set; } = default!;
+
+    private async Task HandleClick()
+    {
+        await JS.InvokeVoidAsync("toggleBasket");
+
+        StateManagementService.Basket = await basketClient.GetBasketForUser(StateManagementService.LoggedInUser.ID);
+    }
+
+	public bool IsLoggedIn { get; set; }
+
+    protected override void OnInitialized()
+    {
+        // Initial state setup
+        IsLoggedIn = StateManagementService.IsLoggedIn;
+
+        // Subscribe to state change notifications
+        StateManagementService.OnChange += StateHasChangedSafely;
+    }
+
+    // This method ensures the state is updated in a thread-safe way
+    private void StateHasChangedSafely()
+    {
+        IsLoggedIn = StateManagementService.IsLoggedIn;
+        InvokeAsync(() => StateHasChanged());
+    }
+
+    public void Dispose()
+    {
+        // Unsubscribe from state changes to avoid memory leaks
+        StateManagementService.OnChange -= StateHasChangedSafely;
+    }
+}
+
+<script type="text/javascript">
+    let closed = true;
+
+    function toggleBasket(){
+        if(closed){
+            openNav();
+        }
+        else{
+            closeNav();
+        }
+
+        closed = !closed;
+    }
+
+	function openNav() {
+      document.getElementById("shopping-basket").style.width = "25rem";
+	  document.getElementById("main-content").style.paddingRight = "25rem"; /* Shift left */
+	}
+
+	function closeNav() {
+      document.getElementById("shopping-basket").style.width = "0";
+	  document.getElementById("main-content").style.paddingRight = "0";
+	}
+
+</script>
+
+<style>
+    
+</style>

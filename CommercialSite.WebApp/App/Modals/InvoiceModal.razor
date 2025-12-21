@@ -1,0 +1,121 @@
+﻿@inject StateManagementService StateManagementService
+<div class="modal @modalClass" tabindex="-1" role="dialog" style="display:@modalDisplay; overflow-y: auto;">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                @if (InvoiceData is not null)
+                {
+                    <h5 class="modal-title">View Invoice</h5>
+                }
+                <button class="badge bg-danger close-button" @onclick="() => Close()">X</button>
+            </div>
+            <div class="modal-body">
+                @if (InvoiceData is not null)
+                {
+                    <div class="invoice-container">
+                        <div style="text-align:left;">
+                            <p><strong>Invoice To: </strong> @InvoiceData.TargetLabel</p>
+                            @if(InvoiceData.InvoiceAddress is not null)
+                            {
+                                <span>@InvoiceData.InvoiceAddress</span>
+                                <br />
+                                <span>@InvoiceData.InvoiceTown</span>
+                                <br />
+                                <span>@InvoiceData.InvoiceCounty</span>
+                                <br />
+                                <span>@InvoiceData.InvoiceCountry</span>
+                                <br />
+                                <span>@InvoiceData.InvoicePostcode</span>
+                            }
+                        </div>
+                        <div style="text-align:right;">
+                            <p><strong>Invoice No.:</strong> @InvoiceData.Reference</p>
+                            <p><strong>Invoice Date:</strong> @InvoiceData.DateCreated.ToShortDateString()</p>
+                            <p><strong>Date Due:</strong> @InvoiceData.DateDue.ToShortDateString()</p>
+                        </div>
+                        <br />
+                        <div class="table-responsive-lg">
+                        <table class="table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th style="text-align: center;">Net</th>
+                                    <th style="text-align: center;">Tax</th>
+                                        <th style="text-align: center;">Tax Rate</th>
+                                    <th style ="text-align: center;">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in InvoiceData.Items)
+                                {
+                                    <tr>
+                                        <td>@item.DynamicLabel</td>
+                                        <td style="text-align: right;">
+                                            @(item.Amount.Value > 0 ? (item.Amount.Value - item.Tax.Value).ToString("C") : "")
+                                        </td>
+                                        <td style="text-align: right;">
+                                            @(item.Tax.Value > 0 ? item.Tax.Value.ToString("C") : "")
+                                        </td>
+                                        <td style="text-align: right;">
+                                            @(item.Tax.Value > 0 ? (InvoiceData.TaxRate.ToString("F2") + "%") : "")
+                                        </td>
+                                        <td style="text-align: right;">
+                                            @(item.Amount.Value > 0 ? item.Amount.Value.ToString("C") : "")
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                        </div>
+                        <hr />
+                        <div style="text-align:right;">
+                            <h5><strong>Total: </strong>@InvoiceData.Amount.ToString("C")</h5>
+                            <h6><strong>Paid: </strong>@InvoiceData.AmountPaid.ToString("C")</h6>
+                            <h6><strong>Outstanding: </strong>@InvoiceData.Outstanding.ToString("C")</h6>
+                        </div>
+                        
+
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (showBackdrop)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    [Inject] private InvoiceService Service { get; set; } = default!;
+
+    private Models.Invoice? InvoiceData;
+
+    protected override void OnInitialized()
+    {
+        InvoiceData = Service.GetInvoice();
+    }
+
+    private string modalDisplay = "none;";
+    private string modalClass = "";
+    private bool showBackdrop = false;
+
+    public void Open()
+    {
+        modalDisplay = "block;";
+        modalClass = "show";
+        showBackdrop = true;
+        InvoiceData = Service.GetInvoice();
+        StateHasChanged();
+    }
+
+    public void Close()
+    {
+        modalDisplay = "none";
+        modalClass = "";
+        showBackdrop = false;
+        StateHasChanged();
+    }
+
+}

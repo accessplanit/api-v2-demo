@@ -1,0 +1,103 @@
+﻿@page "/login"
+
+@inject NavigationManager NavigationManager
+@inject StateManagementService StateManagementService
+@inject AccessPlanitTokenClient AccessPlanitTokenClient
+@inject AccessPlanitAPIClient AccessPlanitAPIClient
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject AccessPlanitLoginClient AccessPlanitLoginClient
+@inject AccessPlanitAPIBasketClient basketClient
+
+<div class="login-form-wrapper container d-flex flex-column justify-content-center px-3">
+    <EditForm Model="LoginFormModel" OnValidSubmit="HandleLogin" FormName="LoginForm">
+        <DataAnnotationsValidator />
+
+        <div class="form-group mb-3">
+            <label for="Username">Username</label>
+            <InputText id="Username" class="form-control" @bind-Value="LoginFormModel.Username" disabled="@IsLoggingIn"/>
+            <ValidationMessage For="@(() => LoginFormModel.Username)" />
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="Password">Password</label>
+            <InputText type="password" id="Password" class="form-control" @bind-Value="LoginFormModel.Password" disabled="@IsLoggingIn" />
+            <ValidationMessage For="@(() => LoginFormModel.Password)" />
+
+            @if (!string.IsNullOrEmpty(ApiErrorMessage))
+            {
+                <div class="text-danger">@ApiErrorMessage</div>
+            }
+        </div>
+
+        <ValidationSummary />
+
+        <div class="d-flex mx-auto my-3 justify-content-center">
+            <button class="btn btn-primary d-flex flex-wrap justify-content-center align-content-center login-button" type="submit">
+                @if (IsLoggingIn)
+                {
+                    <div class="d-flex spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                }
+                else
+                {
+                    <span>Login</span>
+                }
+            </button>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    private LoginForm? LoginFormModel { get; set; }
+
+    private bool IsLoggingIn = false;
+    private string ApiErrorMessage = "";
+
+    protected override void OnInitialized() => LoginFormModel ??= new();
+    
+    private async Task HandleLogin()
+    {
+        IsLoggingIn = true;
+        ApiErrorMessage = "";
+
+        try
+        {
+
+            var token = await AccessPlanitTokenClient.GetToken();
+
+            if (token is not null)
+                await ((ApiAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsAuthenticated(token);
+
+            var loginResponse = await AccessPlanitLoginClient.Login(LoginFormModel);
+
+            if (loginResponse.Success)
+            {
+                var user = await AccessPlanitAPIClient.GetById<User>(loginResponse.User.ID);
+
+                if (user is not null){
+                    user.ID = loginResponse.User.ID;
+                    StateManagementService.SetLoggedInUser(user);
+                    StateManagementService.Basket = await basketClient.GetBasketForUser(user.ID);
+                }
+
+                // Navigate to the homepage after successful login
+                NavigationManager.NavigateTo("/");
+            }
+            else
+            {
+                ApiErrorMessage = loginResponse.Message;
+                StateManagementService.Logout();
+                await ((ApiAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsLoggedOut();
+                NavigationManager.NavigateTo("/login");
+            }
+        }
+        catch (Exception ex)
+        {
+            StateManagementService.SetLatestErrorMessage($"Error logging in: {ex.Message}");
+        }
+
+        LoginFormModel.Password = string.Empty;
+        IsLoggingIn = false;
+    }
+}

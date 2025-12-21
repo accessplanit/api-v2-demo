@@ -1,0 +1,12 @@
+C:\Users\StephenHelvin\source\repos\accessplanit-craig\Commercial-Site-Rock\Constants\bin\Debug\net8.0\Constants.deps.json
+C:\Users\StephenHelvin\source\repos\accessplanit-craig\Commercial-Site-Rock\Constants\bin\Debug\net8.0\Constants.dll
+C:\Users\StephenHelvin\source\repos\accessplanit-craig\Commercial-Site-Rock\Constants\bin\Debug\net8.0\Constants.pdb
+C:\Users\StephenHelvin\source\repos\accessplanit-craig\Commercial-Site-Rock\Constants\obj\Debug\net8.0\Constants.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\StephenHelvin\source\repos\accessplanit-craig\Commercial-Site-Rock\Constants\obj\Debug\net8.0\Constants.AssemblyInfoInputs.cache
+C:\Users\StephenHelvin\source\repos\accessplanit-craig\Commercial-Site-Rock\Constants\obj\Debug\net8.0\Constants.AssemblyInfo.cs
+C:\Users\StephenHelvin\source\repos\accessplanit-craig\Commercial-Site-Rock\Constants\obj\Debug\net8.0\Constants.csproj.CoreCompileInputs.cache
+C:\Users\StephenHelvin\source\repos\accessplanit-craig\Commercial-Site-Rock\Constants\obj\Debug\net8.0\Constants.sourcelink.json
+C:\Users\StephenHelvin\source\repos\accessplanit-craig\Commercial-Site-Rock\Constants\obj\Debug\net8.0\Constants.dll
+C:\Users\StephenHelvin\source\repos\accessplanit-craig\Commercial-Site-Rock\Constants\obj\Debug\net8.0\refint\Constants.dll
+C:\Users\StephenHelvin\source\repos\accessplanit-craig\Commercial-Site-Rock\Constants\obj\Debug\net8.0\Constants.pdb
+C:\Users\StephenHelvin\source\repos\accessplanit-craig\Commercial-Site-Rock\Constants\obj\Debug\net8.0\ref\Constants.dll

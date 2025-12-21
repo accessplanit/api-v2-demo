@@ -1,0 +1,66 @@
+﻿@inject StateManagementService StateManagementService
+<div class="modal @modalClass" tabindex="-1" role="dialog" style="display:@modalDisplay; overflow-y: auto;">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                @if (courseData is not null)
+                {
+                    <h5 class="modal-title">View Web Course - @courseData.CourseOrAliasName</h5>
+                }
+                <button class="badge bg-danger close-button" @onclick="() => Close()">X</button>
+            </div>
+            <div class="modal-body">
+                @if (courseData is not null)
+                {
+                        <div class="card mt-3">
+                            <div class="w-100 d-flex justify-content-between px-3 py-2 heading fw-bold show">Course Information</div>
+                            <div class="collapse multi-collapse show p-3">
+                                <p><strong>Course ID:</strong> @courseData.CourseDateId</p>
+                                <p><strong>Status:</strong> @courseData.Status</p>
+                            </div>
+                        </div>
+
+                        <div class="card mt-3">
+                            <div class="w-100 d-flex justify-content-between px-3 py-2 heading fw-bold show">Overview/Aims</div>
+                            <div class="collapse multi-collapse show p-3">
+                                <p>@((MarkupString)courseData.CourseOverview)</p>
+
+                            </div>
+                        </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (showBackdrop)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+
+    private Models.UserCourseDateWeb? courseData;
+
+    private string modalDisplay = "none;";
+    private string modalClass = "";
+    private bool showBackdrop = false;
+
+    public void Open(UserCourseDateWeb course)
+    {
+        modalDisplay = "block;";
+        modalClass = "show";
+        showBackdrop = true;
+        courseData = course;
+        StateHasChanged();
+    }
+
+    public void Close()
+    {
+        modalDisplay = "none";
+        modalClass = "";
+        showBackdrop = false;
+        StateHasChanged();
+    }
+
+}

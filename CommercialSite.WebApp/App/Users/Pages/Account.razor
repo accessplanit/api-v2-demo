@@ -1,0 +1,125 @@
+﻿@page "/account";
+
+@layout MainLayout
+@inject AccessPlanitUserClient AccessPlanitUserClient
+@inject StateManagementService StateManagementService
+@inject AccessPlanitUserCourseDateClient AccessPlanitUserCourseDateClient
+@inject AccessPlanitInvoiceClient AccessPlanitInvoiceClient
+@inject AccessPlanitInvoiceItemClient AccessPlanitInvoiceItemClient
+@inject AccessPlanitUsersElearningPackageClient AccessPlanitUsersElearningPackageClient
+@inject NavigationManager Navigation
+@inject InvoiceService InvoiceService
+@inject AccessPlanitCourseDateBookingClient AccessPlanitCourseDateBookingClient
+
+
+
+<form class="row g-1 " >
+	<div class="header d-grid gap-2 d-md-flex justify-content-md-between mb-3 align-items-md-center">
+		<h2>My Account</h2>
+		<button class="btn btn-primary fw-bold save-button" @onclick="() => UpdateUser()">
+			<div class="d-flex align-items-md-center justify-content-center gap-2">
+				<i class="lni lni-save"></i>
+				<div>Save</div>
+			</div>
+		</button>
+	</div>	
+	<div class="card" id="collapsePersonalFields">
+		<div class="w-100 d-flex justify-content-between px-3 py-2 heading fw-bold show">Personal</div>
+		<div class="collapse multi-collapse show p-3">
+			<div class="col-md-6 mb-3">
+				<label for="Forenames" class="form-label">Forenames</label>
+				<input type="text" class="form-control" id="Forenames" @bind-value="@LoggedInUserDetails.Forenames">
+			</div>
+			<div class="col-md-6 mb-3">
+				<label for="MiddleNames" class="form-label">MiddleNames</label>
+				<input type="text" class="form-control" id="MiddleNames" @bind-value="@LoggedInUserDetails.MiddleNames">
+			</div>
+			<div class="col-md-6 mb-3">
+				<label for="Surname" class="form-label">Surname</label>
+				<input type="text" class="form-control" id="Surname" @bind-value="@LoggedInUserDetails.Surname">
+			</div>
+			<div class="col-md-6 mb-3">
+				<label for="DOB" class="form-label">DOB</label>
+				<input type="date" class="form-control" id="DOB" @bind-value="@LoggedInUserDetails.DOB">
+			</div>
+			<div class="col-md-6">
+				<label for="Gender" class="form-label">Gender</label>
+				<select class="form-select form-select" id="Gender" @bind="@LoggedInUserDetails.Sex">
+					<option value="Female">Female</option>
+					<option value="Male">Male</option>
+					<option value="Intersex">Intersex</option>
+					<option value="Unspecified">Unspecified</option>
+					<option value="Other">Other</option>
+				</select>
+			</div>
+		</div>
+	</div>
+	
+	<div class="card mt-3">
+		<div class="w-100 d-flex justify-content-between px-3 py-2 heading fw-bold show">Change Password</div>
+		<div class="collapse multi-collapse show p-3" id="collapsePasswordFields">
+			<div class="col-md-6 mb-3">
+				<label for="DOB" class="form-label">Password</label>
+				<input type="password" class="form-control" id="Password" >
+			</div>	
+			<div class="col-md-6 mb-3">
+				<label for="ConfirmPassword" class="form-label">Confirm Password</label>
+				<input type="password" class="form-control" id="ConfirmPassword" >
+			</div>
+			<div class="col-md-6 mb-3">
+				<label for="PasswordHint" class="form-label">Password Hint</label>
+				<input type="text" class="form-control" id="PasswordHint">
+			</div>
+		</div>
+	</div>
+
+	<div class="card mt-3">
+		<div class="w-100 d-flex justify-content-between px-3 py-2 heading fw-bold show">Address</div>
+		<div class="collapse multi-collapse show p-3" id="collapseAddressFields">
+			<div class="col-md-6 mb-3">
+				<label for="Address" class="form-label">Address</label>
+				<input type="text" class="form-control" id="Address" @bind-value="@LoggedInUserDetails.Address">
+			</div>
+			<div class="col-md-6 mb-3">
+				<label for="Town" class="form-label">Town</label>
+				<input type="text" class="form-control" id="Town" @bind-value="@LoggedInUserDetails.Town">
+			</div>
+			<div class="col-md-6 mb-3">
+				<label for="County" class="form-label">County</label>
+				<input type="text" class="form-control" id="County" @bind-value="@LoggedInUserDetails.County">
+			</div>
+			<div class="col-md-6 mb-3">
+				<label for="Postcode" class="form-label">Postcode</label>
+				<input type="text" class="form-control" id="Postcode" @bind-value="@LoggedInUserDetails.Postcode">
+			</div>
+	</div>
+	</div>
+
+	<div class="card mt-3">
+		<div class="w-100 d-flex justify-content-between px-3 py-2 heading fw-bold show">Contact</div>
+		<div class="collapse multi-collapse p-3 show" id="collapseContactFields">
+			<div class="col-md-6 mb-3">
+				<label for="Email" class="form-label">Email Address</label>
+				<input type="email" class="form-control" id="Email" @bind-value="@LoggedInUserDetails.Email">
+			</div>
+			<div class="col-md-6 mb-3">
+				<label for="Mobile " class="form-label">Mobile Number</label>
+				<input type="tel" class="form-control" id="Mobile" @bind-value="@LoggedInUserDetails.Mobile">
+			</div>
+			<div class="col-md-6 mb-3">
+				<label for="Phone" class="form-label">Phone Number</label>
+				<input type="tel" class="form-control" id="Phone" @bind-value="@LoggedInUserDetails.Phone">
+			</div>
+			<div class="col-md-6 mb-3">
+				<label for="Fax" class="form-label">Fax Number</label>
+				<input type="text" class="form-control" id="Fax" @bind-value="@LoggedInUserDetails.Fax">
+			</div>
+			<div class="form-check">
+				<label for="MarketingOptIn" class="form-label">Marketing Opt-In</label>
+				<input type="checkbox" class="form-check-input" id="MarketingOptIn" @bind="@LoggedInUserDetails.MarketingOptIn">
+			</div>
+		</div>
+	</div>
+</form>
+
+

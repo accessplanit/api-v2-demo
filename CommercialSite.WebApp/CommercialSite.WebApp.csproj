@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="App\NewFolder1\**" />
+    <Compile Remove="App\NewFolder2\**" />
+    <Content Remove="App\NewFolder1\**" />
+    <Content Remove="App\NewFolder2\**" />
+    <EmbeddedResource Remove="App\NewFolder1\**" />
+    <EmbeddedResource Remove="App\NewFolder2\**" />
+    <None Remove="App\NewFolder1\**" />
+    <None Remove="App\NewFolder2\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\APIClient\APIClient.csproj" />
+    <ProjectReference Include="..\Models\Models.csproj" />
+    <ProjectReference Include="..\Services\Services.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid" Version="8.0.11" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="App\Basket\" />
+    <Folder Include="wwwroot\images\" />
+  </ItemGroup>
+
+</Project>

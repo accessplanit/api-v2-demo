@@ -1,0 +1,419 @@
+﻿@page "/courses";
+@inject AccessPlanitCourseClient AccessPlanitCourseClient;
+@inject AccessPlanitCourseDateClient AccessPlanitCourseDateClient;
+@inject AccessPlanitUserCourseDateClient AccessPlanitUserCourseDateClient;
+@inject AccessPlanitAPIBasketClient BasketClient;
+@inject StateManagementService StateManagementService;
+
+<div class="toast course-added-toast align-items-center" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true">
+    <div class="d-flex">
+        <div class="toast-body">
+            Course added to basket successfully.
+        </div>
+        <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+</div>
+
+@if (courses == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+
+    <div class="d-flex flex-column mt-2">
+        <div>
+            <div class="filter rounded d-flex flex-row flex-wrap">
+                <div class="me-3 my-3 flex-grow-1 course-search">
+                    <label for="course-search" class="mb-1">Course</label>
+                    <div class="search-box">
+                        <div class="search-box-icon" />
+                        <input id="course-search" type="search" autofocus @oninput="OnLabelFilterChanged" placeholder="Search...">
+                    </div>
+                </div>
+                @* <div class="divider"></div> *@
+                <div class="me-3 my-3">
+                    <label for="coursetype-filter" class="mb-1">Course Type</label>
+                    <select id="coursetype-filter" class="coursetype-filter" @onchange="OnCourseTypeFilterChanged">
+                        <option value="">-- Select --</option>
+                        <option value="class">Class</option>
+                        <option value="elearning">ELearning</option>
+                        <option value="web">Web</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex flex-column my-3">
+            @foreach (var course in filteredCourses)
+            {
+                <div class="d-flex border rounded flex-column my-3 course-card">
+                    <div class="d-flex justify-content-between p-4 w-100 gap-5">
+                        <div class="d-flex flex-column">
+                            <div class="d-flex flex-row align-items-center pb-1">
+                                <div class="fw-bold fs-4">
+                                    @course.Label
+                                </div>
+                                <div class="classtype-tag rounded fs-7 @GetCourseTypeStyle(course.CourseType)" style="margin-left: 8px;">
+                                    <i class="bi @GetCourseIcon(course.CourseType)"></i>
+                                    @course.CourseType
+                                </div>
+                            </div>
+                            <div class="text-justify pb-3">
+                                @((MarkupString)course.Description)
+                            </div>
+                            <div>
+                                <button class="btn @(visibleGrids.ContainsKey(course.ID) && visibleGrids[course.ID] ? "btn-secondary" : "btn-primary")" @onclick="() => ToggleGridVisibility(course.ID)">
+                                    @if (visibleGrids.ContainsKey(course.ID) && visibleGrids[course.ID])
+                                    {
+                                        <text>Hide Dates</text>
+                                    }
+                                    else
+                                    {
+                                        <text>Show Dates</text>
+                                    }
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (visibleGrids.ContainsKey(course.ID) && visibleGrids[course.ID])
+                    {
+                        <div class="p-4 pt-0 w-100">
+                            <QuickGrid Items="filteredCourseDates.Where(cd => cd.CourseID == course.ID)" Pagination="@GetPaginationState(course.ID)" style="width: 100%">
+                                <PropertyColumn Property="@(d => d.StartDate)" Title="Start Date" Sortable="true" />
+                                <PropertyColumn Property="@(d => d.EndDate)" Title="End Date" Sortable="true" />
+                                <PropertyColumn Property="@(d => Math.Round(d.DurationInHours, 1))" Title="Hours" Sortable="true" />
+                                <PropertyColumn Property="@(d => d.Status)" Title="Status" Sortable="true" />
+                                <PropertyColumn Property="@(d => d.DisplayCost)" Title="Cost" Sortable="true" />
+                                <PropertyColumn Property="@(d => d.VenueLabel)" Title="Venue" Sortable="true" />
+                                <PropertyColumn Property="@(d => d.VenueTown)" Title="Town" Sortable="true" />
+                                <PropertyColumn Property="@(d => d.SpacesLeft)" Title="Places" Sortable="true" />
+                                <TemplateColumn Class="right-align">
+                                    <button class="@($"btn {(context.SpacesLeft < 1 ? "btn-danger" : "btn-success")}")" disabled="@((context.SpacesLeft < 1))" @onclick="() => AddItemToBasket(context.ID)">
+                                        @(context.SpacesLeft < 1 ? "Unavailable" : "Book")
+                                    </button>
+                                </TemplateColumn>
+                            </QuickGrid>
+                            <Paginator State="@GetPaginationState(course.ID)" />
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+    </div>
+}
+
+@code {
+    [Inject] private IJSRuntime JS { get; set; } = default!;
+
+    PaginationState pagination = new PaginationState { ItemsPerPage = 5 };
+    Dictionary<string, PaginationState> paginationStates = new();
+    IQueryable<Course>? courses;
+    IQueryable<Course>? filteredCourses;
+    IQueryable<CourseDate>? courseDates;
+    IQueryable<CourseDate>? filteredCourseDates;
+    private Dictionary<Course, bool> ExpandedRows = new Dictionary<Course, bool>();
+    private Dictionary<string, bool> visibleGrids = new();
+    private string currentLabelFilter = string.Empty;
+    private string currentCourseTypeFilter = string.Empty;
+
+    private void ToggleGridVisibility(string courseId)
+    {
+        if (!visibleGrids.ContainsKey(courseId))
+            visibleGrids[courseId] = false;
+
+        visibleGrids[courseId] = !visibleGrids[courseId];
+    }
+
+    private PaginationState GetPaginationState(string courseId)
+    {
+        if (!paginationStates.TryGetValue(courseId, out var state) || state is null)
+        {
+            state = new PaginationState() { ItemsPerPage = 5 };
+            paginationStates[courseId] = state;
+        }
+
+        return state;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var courseResult = await AccessPlanitCourseClient.GetAll<Course>();
+            courses = courseResult.AsQueryable();
+            filteredCourses = courses;
+
+            var courseDateResult = await AccessPlanitCourseDateClient.GetAll<CourseDate>();
+            courseDates = courseDateResult.AsQueryable();
+            filteredCourseDates = courseDates;
+        }
+        catch (Exception ex)
+        {
+            StateManagementService.SetLatestErrorMessage($"Something went wrong: {ex.Message}");
+            throw;
+        }
+    }
+
+    private void ToggleRow(Course course)
+    {
+        if (!ExpandedRows.ContainsKey(course))
+            ExpandedRows[course] = false;
+
+        ExpandedRows[course] = !ExpandedRows[course];
+    }
+
+    private bool GetRowExpanded(Course course)
+        => ExpandedRows.ContainsKey(course) && ExpandedRows[course];
+
+    private async Task AddItemToBasket(string itemID)
+    {
+        StateManagementService.Basket = await BasketClient.AddItemToBasket(StateManagementService.LoggedInUser.ID, itemID, 12);
+
+        StateHasChanged();
+
+        await JS.InvokeVoidAsync("showAddItemToast");
+    }
+
+    private async Task SearchCoursesByLabel(string searchLabel)
+    {
+        currentLabelFilter = searchLabel;
+
+        await ApplyFilters();
+    }
+
+    private async Task SearchCoursesByCourseType(string courseType)
+    {
+        currentCourseTypeFilter = courseType;
+
+        await ApplyFilters();
+    }
+
+    private async Task ApplyFilters()
+    {
+        if (string.IsNullOrWhiteSpace(currentLabelFilter) && string.IsNullOrWhiteSpace(currentCourseTypeFilter))
+        {
+            filteredCourses = courses;
+        }
+        else
+        {
+            var coursesResult = await AccessPlanitCourseClient.GetFilteredCourses(
+                label: string.IsNullOrWhiteSpace(currentLabelFilter) ? null : currentLabelFilter,
+                courseType: string.IsNullOrWhiteSpace(currentCourseTypeFilter) ? null : currentCourseTypeFilter
+            );
+
+            var courseDates = new List<CourseDate>();
+
+            foreach(var course in coursesResult)
+            {
+                var courseDateResult = await AccessPlanitCourseDateClient.GetCourseDatesForCourseId(course.ID);
+                courseDates.AddRange(courseDateResult);
+            }
+
+            filteredCourses = coursesResult?.AsQueryable();
+            filteredCourseDates = courseDates?.AsQueryable();
+        }
+
+        StateHasChanged();
+    }
+
+    private async void OnLabelFilterChanged(ChangeEventArgs e)
+        => await SearchCoursesByLabel(e.Value.ToString());
+    
+    private async void OnCourseTypeFilterChanged(ChangeEventArgs e)
+        => SearchCoursesByCourseType(e.Value.ToString());  
+
+    private string GetCourseTypeStyle(string courseType)
+    {
+        return courseType switch
+        {
+            "ELearning" => "elearning-tag",
+            "Class" => "class-tag",
+            "Web" => "web-tag",
+            _ => ""
+        };
+    }
+
+    private string GetCourseIcon(string courseType)
+    {
+        return courseType switch
+        {
+            "ELearning" => "bi-laptop",
+            "Class" => "bi-building",
+            "Web" => "bi-globe",
+            _ => ""
+        };
+    }
+}
+
+<script type="text/javascript">
+    function showAddItemToast(){
+        var toastElList = [].slice.call(document.querySelectorAll('.course-added-toast'))
+        var toastList = toastElList.map(function (toastEl) {
+            return new bootstrap.Toast(toastEl)
+        });
+
+        toastList.forEach(function (toast) {
+            toast.show();
+        });
+    }
+</script>
+
+<style>
+    .quickgrid[theme=default] {
+        --col-gap: 1rem;
+    }
+
+    .quickgrid thead {
+        background-color: #1550af;
+    }
+
+    tbody tr {
+        background-color: rgba(0,0,0,0.04);
+    }
+
+    tbody tr:nth-child(even) {
+        background: rgba(255,255,255,0.4);
+    }
+
+    .course-added-toast
+    {
+        position: fixed;
+        top: 1rem; /* Or wherever you want it */
+        right: 1rem;
+        z-index: 1050; /* Bootstrap’s default modal z-index is 1040, so this ensures it’s above other content */
+    }
+
+    .col-header-content {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .search-box,
+    .coursetype-filter,
+    .date-filter {
+        display: flex;
+        align-items: center;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        padding: 5px;
+        background-color: #fff;
+        min-width: 275px;
+        width: 100%;
+    }
+
+    .coursetype-filter {
+        padding: 8px;
+    }
+
+    .date-filter {
+        padding: 6px;
+    }
+
+    .search-box-icon {
+        width: 1.25rem;
+        height: 1.25rem;
+        margin-right: 8px;
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="%23808080" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>');
+        background-repeat: no-repeat;
+        background-size: contain;
+        background-position: center;
+        flex-shrink: 0;
+    }
+
+    .datagrid-button {
+        padding: 5px 15px;
+        text-transform: capitalize;
+        color: white;
+        font-weight: bold;
+        border-width: 0px;
+        border-radius: 10px;
+        box-shadow: 0px 3px 1px -2px rgba(0,0,0,.2),0px 2px 2px 0px rgba(0,0,0,.14),0px 1px 5px 0px rgba(0,0,0,.12);
+    }
+
+    .book-btn {
+        margin-top: 0.625rem;
+    }
+
+    .btn {
+        width: 145px;
+    } 
+
+    input[type="search"] {
+        border: none;
+        outline: none;
+        flex: 1;
+        font-size: 1rem;
+    }
+
+    td:empty::before {
+        content: "-";
+        color: gray;
+    }
+
+    .text-justify {
+        text-align: justify;
+    }
+
+    .right-align {
+        text-align: right;
+    }
+
+    .classtype-tag {
+        font-size: 0.875rem;
+        padding: 4px 10px;
+        display: inline-block;
+        text-align: center;
+        border-width: 2px;
+        font-weight: bold;
+        border-style: solid;
+    }
+
+    .class-tag {
+        border-color: #008080;
+        background: rgba(0, 128, 128, 0.1);
+        color: #008080;
+    }
+
+    .elearning-tag {
+        border-color: #FF8C00;
+        background: rgba(255, 165, 0, 0.1);
+        color: #FF8C00;
+    }
+
+    .web-tag {
+        border-color: #800080;
+        background: rgba(128, 0, 128, 0.1);
+        color: #800080;
+    }
+
+    .col-title-text,
+    .filter label {
+        color: #3b3e44;
+        font-weight: bold;
+    }
+
+    .col-title-text {
+        color: #e4fdff;
+        font-weight: bold;
+    }
+
+    .course-card {
+        background: #fff;
+        border: 1px solid #E5E7EB !important;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+
+    .divider {
+        width: 3px;
+        background-color: lightgray;
+        margin: 0 10px;
+    }
+
+    .course-search {
+        max-width: 450px;
+    }
+</style>

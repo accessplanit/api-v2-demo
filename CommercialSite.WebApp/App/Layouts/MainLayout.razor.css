@@ -1,0 +1,39 @@
+﻿#main-layout {
+	display: flex;
+	flex-direction: row;
+	height: 100vh;	
+}
+
+	#main-layout > * {
+		display: flex;
+	}
+
+#sidebar-content {
+	height: 100vh;
+	position: fixed;
+	top: 0;
+	left: 0;
+	background: #f8f9fa;
+	overflow-y: auto;	
+	width: 250px;
+}
+
+#main-content {
+	flex-flow: column;
+	flex: 1;
+	margin-left: 250px;
+	/*margin: 0; checkout*/
+	/*padding:0; course search*/
+	padding: 5px;
+	transition: margin-right 0.5s;
+	overflow-x: hidden;
+}
+
+/*#content {
+	flex: 1;
+	padding: 10px;
+}*/
+
+.container {
+	display: flex;
+}

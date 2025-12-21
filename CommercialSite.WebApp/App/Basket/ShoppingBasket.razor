@@ -1,0 +1,603 @@
+﻿@inject StateManagementService StateManagementService
+@inject AccessPlanitAPIBasketClient basketClient
+@using WebApp.App.Modals
+
+<div id="shopping-basket" class="sidebar">
+    <div class="cart-body">
+        <div class="row">
+            <div class="col-md-12">
+                <h6 class="basket-header">
+                    <i class="lni lni-cart"></i> My Basket
+                </h6>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card basket-items-card">
+                    <div class="card-body">
+                        <div class="toast checked-out-toast align-items-center" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true">
+                            <div class="d-flex">
+                                <div class="toast-body">
+                                    @ToastMessage
+                                </div>
+                                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                        </div>
+
+                        @if(StateManagementService.Basket == null || StateManagementService.Basket?.Items.Count() == 0)
+                        {
+                            <span style="text-align:center;">Basket is empty</span>
+                        }
+                        else{
+                            <ul class="list-group list-group-flush">
+                                @foreach(var item in StateManagementService.Basket?.Items)
+                                {
+                                    <li class="list-group-item">
+                                        <div class="row">
+                                            <div class="col-md-8">
+                                                @item.ItemName
+                                            </div>
+                                            <div class="col-md-4" style="text-align:right;">
+                                                @{
+                                                    var costString = $"{item.CurrencySymbol}{item.UnitGross.ToString("0.00")}";
+                                                }
+                                                @((MarkupString)costString)
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <span class="basket-item-description">@item.ItemDescription</span>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <span class="basket-item-description">Quantity: @item.Quantity</span>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <button class="badge bg-danger border-0" style="vertical-align:middle" @onclick="() => RemoveItemFromBasket(StateManagementService.Basket.UniqueBasketID, item.BasketItemID)">Remove</button>
+                                                <button class="badge bg-primary border-0" style="vertical-align:middle" @onclick="() => OpenAddDelegateModal(item)">Add Delegates</button>
+                                            </div>
+                                        </div>
+                                        @if (item.AssignedUsers.Any())
+                                        {       <hr />
+                                            <div class="accordion accordion-flush" id="delegatesAccordion">
+                                                <div class="accordion-item">
+                                                    <h2 class="accordion-header" id="delegates-heading">
+                                                        <button class="accordion-button collapsed delegates-button" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
+                                                            Delegates
+                                                        </button>
+                                                    </h2>
+                                                    <div id="flush-collapseOne" class="accordion-collapse collapse" aria-labelledby="delegates-heading" data-bs-parent="#delegatesAccordion">
+                                                        <div class="accordion-body">
+                                                            @foreach (var user in item.AssignedUsers)
+                                                            {
+                                                                <div class="row basket-item-user">
+                                                                    <div class="col-md-10">
+                                                                        @{
+                                                                            var userName = $"{user.Forenames} {user.Surname}";
+                                                                        }
+                                                                        @userName
+                                                                    </div>
+                                                                    <div class="col-md-2" style="text-align:right;">
+                                                                        <button class="badge bg-danger" @onclick="() => RemoveUserFromBasketItem(StateManagementService.Basket.UniqueBasketID, item.BasketItemID, user.UserID)">X</button>
+                                                                    </div>
+                                                                </div>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                        @if (item.AppliedDiscounts.Any())
+                                        {
+                                            foreach(var discount in item.AppliedDiscounts)
+                                            {
+                                                <hr />
+                                                <div class="row basket-item-discount">
+                                                    <div class="col-md-8">
+                                                        @discount.Name
+                                                    </div>
+                                                    <div class="col-md-4" style="text-align:right;">
+                                                        @{
+                                                            var discountCostString = $"{discount.CurrencySymbol}{discount.UnitGross.ToString("0.00")}";
+                                                        }
+                                                        @((MarkupString)discountCostString)
+                                                    </div>
+                                                </div>
+                                            }
+                                        }
+                                    </li>
+                                }
+                            </ul>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12 subtotal-card-container">
+                <div class="card subtotal-card">
+                    <div class="card-body">
+                        @if (StateManagementService.Basket?.Items.Count() > 0){
+                            <div class="row">
+                                <div class="col-md-9">
+                                    <input class="form-control" type="text" placeholder="Enter discount code" @bind="DiscountCode" />
+                                </div>
+                                <div class="col-md-3" style="text-align:right">
+                                    <button class="btn btn-primary" style="width: auto;" @onclick="() => AddDiscountToBasket()">Add</button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12 subtotal-card-container">
+                <div class="card subtotal-card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                Tax
+                            </div>
+                            <div class="col-md-4" style="text-align:right">
+                                @((MarkupString)BasketItemsTax())
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <strong>Total</strong>
+                            </div>
+                            <div class="col-md-4" style="text-align:right">
+                                <strong>
+                                    @((MarkupString)BasketItemsTotal())
+                                </strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="d-grid gap-2 checkout-button-container">
+                <button class="btn btn-primary checkout-button" type="button" disabled=@(!BasketHasItems()) @onclick="() => CheckoutBasket(StateManagementService.Basket.UniqueBasketID)">Checkout</button>
+            </div>
+        </div>
+
+        <CommercialSite.WebApp.App.Modals.AddDelegateModal @ref="addDelegateModal">
+            <Header>
+                @if (SelectedBasketItem != null)
+                {
+                    <h5 class="modal-title">Add Delegates - @SelectedBasketItem.ItemName</h5>
+                }
+                <button class="badge bg-danger close-button" @onclick="() => CloseAddDelegateModal()">X</button>
+            </Header>
+            <Body>
+                @if (SelectedUsers.Any())
+                {
+                    <h4>Selected Users:</h4>
+                    foreach (var user in SelectedUsers)
+                    {
+                        <div class="row">
+                            <div class="col-md-10">
+                                @{
+                                    var userName = $"{user.Forenames} {user.Surname}";
+                                }
+                                @userName
+                            </div>
+                            <div class="col-md-2" style="text-align:right;">
+                                <button class="badge bg-danger" @onclick="() => RemoveUser(user)">X</button>
+                            </div>
+                        </div>
+                    }
+                }
+                @if (SelectedBasketItem != null)
+                {
+                    <br />
+                    <div class="row g-0">
+                        <div class="col-md-10">
+                            <select class="form-select" aria-label="Default select" @bind="selectedUserID">
+                                <option selected>Select user ...</option>
+                                @foreach (var user in AvailableUsers)
+                                {
+                                    var userName = $"{user.Forenames} {user.Surname} ({user.MainCompanyName}) - {user.EmailAddress}";
+                                    <option value="@user.UserID">@userName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-2" style="text-align:center;">
+                            <button class="btn btn-primary" @onclick="() => AddUser()">Add</button>
+                        </div>
+                    </div>
+                }
+            </Body>
+            <Footer>
+                <div class="row">
+                    <button class="btn btn-success" @onclick="() => AddUsersToBasketItem(StateManagementService.Basket.UniqueBasketID, SelectedBasketItem.BasketItemID, SelectedUsers.Select(u => u.UserID).ToArray())">Add Delegates</button>
+                </div>
+            </Footer>
+        </CommercialSite.WebApp.App.Modals.AddDelegateModal>
+
+    </div>
+</div>
+
+@code {
+    [Inject] private IJSRuntime JS { get; set; } = default!;
+
+    public bool IsLoggedIn { get; set; }
+
+    private string ToastMessage = "";
+
+    private const string CheckoutCompleteMessage = "Purchase Completed Successfully.";
+    private const string ItemRemovedMessage = "Item Removed Successfully.";
+    private const string DelegateRemovedMessage = "Delegate Removed Successfully";
+    private const string UsersAddedToBasketItemMessage = "Users Successfully Added to Basket Item";
+    private string DiscountCode = "";
+
+    #region Modal Properties
+
+    private AddDelegateModal addDelegateModal { get; set; }
+
+    private BasketItem SelectedBasketItem { get; set; }
+
+    private List<BasketItemUser> SelectedUsers = new List<BasketItemUser>();
+
+    private List<BasketItemUser> AvailableUsers = new List<BasketItemUser>();
+
+    private string selectedUserID { get; set; }
+
+    #endregion
+
+
+    protected override void OnInitialized()
+    {
+        // Initial state setup
+        IsLoggedIn = StateManagementService.IsLoggedIn;
+
+        // Subscribe to state change notifications
+        StateManagementService.OnChange += StateHasChangedSafely;
+    }
+
+    // This method ensures the state is updated in a thread-safe way
+    private void StateHasChangedSafely()
+    {
+        IsLoggedIn = StateManagementService.IsLoggedIn;
+        InvokeAsync(() => StateHasChanged());
+    }
+
+    public void Dispose()
+    {
+        // Unsubscribe from state changes to avoid memory leaks
+        StateManagementService.OnChange -= StateHasChangedSafely;
+    }
+
+    #region Basket Management API Methods
+
+    public void GetBasketForLoggedInUser()
+    {
+        if (IsLoggedIn)
+            GetBasketForUser(StateManagementService.LoggedInUser.ID);
+    }
+
+    private async Task GetBasketForUser(string userID)
+    {
+        if (string.IsNullOrWhiteSpace(userID))
+            StateManagementService.Basket = null;
+        else
+            StateManagementService.Basket = await basketClient.GetBasketForUser(userID);
+
+        StateHasChanged();
+    }
+
+    private async Task RemoveItemFromBasket(string uniqueBasketID, int itemID)
+    {
+        StateManagementService.Basket = await basketClient.RemoveItemFromBasket(uniqueBasketID, itemID);
+
+        SetToastMessage(ItemRemovedMessage);
+
+        await JS.InvokeVoidAsync("showSuccessToast");
+
+        StateHasChanged();
+    }
+
+    private async Task CheckoutBasket(string uniqueBasketID)
+    {
+        var success = await basketClient.CompleteBasket(uniqueBasketID);
+
+        if (success)
+        {
+            SetToastMessage(CheckoutCompleteMessage);
+
+            await JS.InvokeVoidAsync("showSuccessToast");
+
+            StateManagementService.Basket = null;
+
+            StateHasChanged();
+        }
+
+    }
+
+    #endregion
+
+    #region Discount Methods
+    private async Task AddDiscountToBasket()
+    {
+        StateManagementService.Basket = await basketClient.AddItemToBasket(StateManagementService.LoggedInUser.ID, DiscountCode, 14);
+
+        DiscountCode = "";
+
+        StateHasChanged();
+    }
+    #endregion
+
+    #region Add and Remove Users API Methods
+    private async Task RemoveUserFromBasketItem(string uniqueBasketID, int itemID, string userID)
+    {
+        StateManagementService.Basket = await basketClient.RemoveUserFromBasketItem(uniqueBasketID, itemID, userID);
+
+        SetToastMessage(DelegateRemovedMessage);
+
+        await JS.InvokeVoidAsync("showSuccessToast");
+
+        StateHasChanged();
+    }
+
+    private async Task AddUsersToBasketItem(string uniqueBasketID, int itemID, string[] userIDs)
+    {
+        StateManagementService.Basket = await basketClient.AddUsersToBasketItem(uniqueBasketID, itemID, userIDs);
+
+        CloseAddDelegateModal();
+
+        SetToastMessage(UsersAddedToBasketItemMessage);
+
+        await JS.InvokeVoidAsync("showSuccessToast");
+
+        StateHasChanged();
+    }
+    #endregion
+
+    #region Modal Methods
+    private void OpenAddDelegateModal(BasketItem item)
+    {
+        SelectedBasketItem = item;
+        AvailableUsers = item.AvailableUsers.ToList();
+        addDelegateModal.Open();
+    }
+
+    private void CloseAddDelegateModal()
+    {
+        SelectedBasketItem = null;
+        AvailableUsers = new List<BasketItemUser>();
+        SelectedUsers = new List<BasketItemUser>();
+        addDelegateModal.Close();
+    }
+
+    private void RemoveUser(BasketItemUser user)
+    {
+        SelectedUsers.Remove(user);
+        RefreshAvailableUsers();
+        StateHasChangedSafely();
+    }
+
+    private void RefreshAvailableUsers()
+    {
+        var available = SelectedBasketItem.AvailableUsers.ToList();
+
+        foreach (var user in SelectedUsers)
+            available.Remove(user);
+
+        AvailableUsers = available;
+    }
+
+    private void AddUser()
+    {
+        var user = SelectedBasketItem.AvailableUsers.SingleOrDefault(u => u.UserID == selectedUserID);
+
+        SelectedUsers.Add(user);
+
+        AvailableUsers.Remove(user);
+
+        selectedUserID = null;
+
+        StateHasChangedSafely();
+    }
+    #endregion
+
+    #region Cost Methods
+    private string BasketItemsTax()
+    {
+        var taxString = "&#163;0.00";
+
+        if (BasketHasItems())
+        {
+            var currencySymbol = StateManagementService.Basket.Items.First().CurrencySymbol;
+
+            var tax = StateManagementService.Basket.Items.Sum(i => i.UnitTax);
+
+            var discountTax = GetDiscountTax();
+
+            tax += discountTax;
+
+            taxString = $"{currencySymbol}{tax.ToString("0.00")}";
+        }
+
+        return taxString;
+    }
+
+    private decimal GetDiscountTax()
+    {
+        var discountTaxValues = StateManagementService.Basket.Items.Select(i => i.AppliedDiscounts.Sum(d => d.UnitTax));
+
+        return discountTaxValues.Sum();
+    }
+
+    private string BasketItemsTotal()
+    {
+        var subTotalString = "&#163;0.00";
+
+        if (BasketHasItems())
+        {
+            var currencySymbol = StateManagementService.Basket.Items.First().CurrencySymbol;
+
+            var total = StateManagementService.Basket.Items.Sum(i => i.UnitGross);
+
+            var tax = StateManagementService.Basket.Items.Sum(i => i.UnitTax);
+
+            var discounts = GetDiscountGross();
+
+            total += discounts;
+
+            subTotalString = $"{currencySymbol}{total.ToString("0.00")}";
+        }
+
+        return subTotalString;
+    }
+
+    private decimal GetDiscountGross()
+    {
+        var discountTaxValues = StateManagementService.Basket.Items.Select(i => i.AppliedDiscounts.Sum(d => d.UnitGross));
+
+        return discountTaxValues.Sum();
+    }
+    
+    #endregion
+    
+    #region Toast Methods
+
+    private void SetToastMessage(string message)
+    {
+        ToastMessage = message;
+    }
+
+    #endregion
+    
+    private bool BasketHasItems()
+    {
+        if (StateManagementService.Basket == null)
+            return false;
+        
+        return StateManagementService.Basket.Items.Any();
+    }
+
+}
+
+<script type="text/javascript">
+    function showSuccessToast(){
+        var toastElList = [].slice.call(document.querySelectorAll('.checked-out-toast'))
+        var toastList = toastElList.map(function (toastEl) {
+            return new bootstrap.Toast(toastEl)
+        });
+
+        toastList.forEach(function (toast) {
+            toast.show();
+        });
+    }
+</script>
+
+<style>
+    .close-button {
+        border: none;
+        font-size: small;
+        width: 25px;
+        height: 25px;
+    }
+
+    .basket-header {
+        padding: 20px;
+        flex-wrap: nowrap;
+        text-align: center;
+    }
+
+    .basket-items-card {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        height: 68vh; /* 65% of the viewport height */
+        display: flex; /* Optional: Helps with centering content */
+        flex-direction: column; /* Stacks child elements vertically */
+        justify-content: center; /* Optional: Centers content vertically */
+        overflow-y:auto;
+    }
+
+    .basket-item-description{
+        font-size:0.8rem;
+    }
+
+    .basket-item-discount{
+        font-size:0.8rem;
+        padding-top:5px;
+        font-weight:bold;
+        color:red;
+    }
+
+    .basket-item-user{
+        font-size: 0.8rem;
+        padding-top: 5px;
+    }
+
+    .cart-body {
+        padding: 10px;
+    }
+
+    .checkout-button{
+        width:100%;
+    }
+
+    .checkout-button-container {
+        padding: 10px;
+    }
+
+    .delegates-button {
+        padding: 5px;
+    }
+
+    .delegates-container {
+        padding: 5px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    /* The sidebar menu */
+    .sidebar {
+        height: 100%;
+        width: 0;
+        position: fixed;
+        z-index: 1;
+        top: 0;
+        right: 0; /* Change from left to right */
+        background: linear-gradient(to bottom, #e3e3e0, white);
+        overflow-x: hidden;
+        padding: 0px;
+        transition: width 0.5s ease;
+        overflow-y: hidden;
+    }
+
+    .subtotal-card{
+        background-color: white;
+        padding: 5px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        height: 8vh; /* 8% of the viewport height */
+        display: flex; /* Optional: Helps with centering content */
+        flex-direction: column; /* Stacks child elements vertically */
+        justify-content: center; /* Optional: Centers content vertically */
+    }
+
+    .subtotal-card-container{
+        margin-top:10px;
+    }
+
+    .toast 
+    {
+        position: fixed;
+        top: 1rem; /* Or wherever you want it */
+        right: 1rem;
+        z-index: 1050; /* Bootstrap’s default modal z-index is 1040, so this ensures it’s above other content */
+    }
+
+</style>

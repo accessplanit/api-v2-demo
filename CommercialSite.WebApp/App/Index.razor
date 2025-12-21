@@ -1,0 +1,247 @@
+﻿
+@layout MainLayout
+
+@page "/"
+
+@inject AccessPlanitUserClient AccessPlanitAPIClient
+@inject StateManagementService StateManagementService
+@inject AccessPlanitUserCourseDateClient AccessPlanitUserCourseDateClient
+@inject AccessPlanitInvoiceClient AccessPlanitInvoiceClient
+@inject AccessPlanitInvoiceItemClient AccessPlanitInvoiceItemClient
+@inject AccessPlanitUsersElearningPackageClient AccessPlanitUsersElearningPackageClient
+@inject NavigationManager Navigation
+@inject InvoiceService InvoiceService
+@inject AccessPlanitCourseDateBookingClient AccessPlanitCourseDateBookingClient
+@inject AccessPlanitUserCourseDateWebClient AccessPlanitUserCourseDateWebClient
+
+<PageTitle>Home</PageTitle>
+
+@if (StateManagementService.IsLoggedIn)
+{
+    string message = $"Welcome {StateManagementService.LoggedInUser.Fullname}";
+    <h2>@message</h2>
+    <br />
+
+	<div class="card mt-3">
+		<a class="btn w-100 d-flex justify-content-between px-3 py-2 heading expandable fw-bold align-items-center"
+		   data-bs-toggle="collapse"
+		   data-bs-target="#collapseInvoiceTable"
+		   role="button"
+		   aria-expanded="false"
+		   aria-controls="collapseInvoiceTable">
+			My Invoices
+			<i class="lni lni-chevron-down rotate-icon ms-2"></i>
+		</a>
+		<div class="collapse multi-collapse w-100" id="collapseInvoiceTable">
+			<div style="overflow-x: auto; white-space: nowrap;">
+				<QuickGrid Items="Invoices">
+					<PropertyColumn Property="@(i => i.Reference)" Sortable="true" Title="Reference"/>
+					<PropertyColumn Property="@(i => i.CompanyName)" Sortable="true" Title="Company Name"/>
+					<PropertyColumn Property="@(i => i.DateCreated)" Format="yyyy-MM-dd" Sortable="true" Title="Date Created"/>
+					<PropertyColumn Property="@(i => i.DateDue)" Format="yyyy-MM-dd" Sortable="true" Title="Date Due"/>
+					<PropertyColumn Property="@(i => i.Status)" Sortable="true" Title="Status"/>
+					<PropertyColumn Property="@(i => i.Amount)" Sortable="true" Title="Amount" Format="C2" Align="Align.Right" />
+					<PropertyColumn Property="@(i => i.AmountPaid)" Sortable="true" Title="Paid" Format="C2"  Align="Align.Right" />
+					<PropertyColumn Property="@(i => i.Outstanding)" Sortable="true" Title="Outstanding" Format="C2" Align="Align.Right" />
+					<TemplateColumn>
+						<ChildContent Context="invoice">
+							<button class="btn btn-sm btn-primary" @onclick="@(() => ViewInvoice(invoice))">View Invoice</button>
+						</ChildContent>
+					</TemplateColumn>
+				</QuickGrid>
+			</div>
+		</div>
+	</div>
+
+	<div class="card mt-3">
+		<a class="btn w-100 d-flex justify-content-between px-3 py-2 heading expandable fw-bold align-items-center"
+		   data-bs-toggle="collapse"
+		   href="#collapseElearningTable"
+		   role="button"
+		   aria-expanded="false"
+		   aria-controls="collapseElearningTable">
+			My eLearning Courses
+			<i class="lni lni-chevron-down rotate-icon ms-2"></i>
+		</a>
+		<div class="collapse multi-collapse w-100" id="collapseElearningTable">
+			<div style="overflow-x: auto; white-space: nowrap;">
+				<QuickGrid Items="UsersElearningPackages">
+					<PropertyColumn Property="@(i => i.ID)" Sortable="true" />
+					<PropertyColumn Property="@(i => i.CourseName)" Title="Course Name" Sortable="true" />
+					<PropertyColumn Property="@(i => i.DateStamp)" Title="Date Enrolled" Sortable="true" />
+					<PropertyColumn Property="@(i => i.DateFirstViewedDisplay)" Title="Date First Viewed" Sortable="true" />
+					<TemplateColumn>
+						<ChildContent Context="usersElearningPackage">
+							@if (!string.IsNullOrEmpty(usersElearningPackage.CandidateDirectELearningUrl))
+							{
+								<a class="btn btn-sm btn-primary" @onclick="() => ViewUsersELearningPackage(usersElearningPackage.CandidateDirectELearningUrl)">
+									Launch Elearning
+								</a>
+							}
+						</ChildContent>
+					</TemplateColumn>
+				</QuickGrid>
+			</div>
+		</div>
+	</div>
+
+	<div class="card mt-3">
+		<a class="btn w-100 d-flex justify-content-between px-3 py-2 heading expandable fw-bold align-items-center"
+		   data-bs-toggle="collapse"
+		   data-bs-target="#collapseCourseTable"
+		   role="button"
+		   aria-expanded="false"
+		   aria-controls="collapseCourseTable">
+			My Courses
+			<i class="lni lni-chevron-down rotate-icon ms-2"></i>
+		</a>
+		<div class="collapse multi-collapse w-100" id="collapseCourseTable">
+			<QuickGrid Items="courses">
+				<PropertyColumn Property="@(ucd => ucd.CourseOrAliasName)" title="Course Name" Sortable="true" />
+				<PropertyColumn Property="@(ucd => ucd.StartDate)" Format="yyyy-MM-dd hh:mm" title="Start Date" Sortable="true" />
+				<PropertyColumn Property="@(ucd => ucd.EndDate)" Format="yyyy-MM-d hh:mm" title="End Date" Sortable="true" />
+				<PropertyColumn Property="@(ucd => ucd.DateStamp)" Format="yyyy-MM-dd" title="Date Registered" Sortable="true" />
+				<PropertyColumn Property="@(ucd => ucd.Status)" Sortable="true" />
+			</QuickGrid>
+		</div>
+	</div>
+
+	<div class="card mt-3">
+		<a class="btn w-100 d-flex justify-content-between px-3 py-2 heading expandable fw-bold align-items-center"
+		   data-bs-toggle="collapse"
+		   data-bs-target="#collapseWebCourseTable"
+		   role="button"
+		   aria-expanded="false"
+		   aria-controls="collapseCourseTable">
+			My Web Courses
+			<i class="lni lni-chevron-down rotate-icon ms-2"></i>
+		</a>
+		<div class="collapse multi-collapse w-100" id="collapseWebCourseTable">
+			<QuickGrid Items="WebCourses">
+				<PropertyColumn Property="@(ucdw => ucdw.CourseOrAliasName)" title="Course Name" Sortable="true" />
+				<PropertyColumn Property="@(ucdw => ucdw.StartDate)" Format="yyyy-MM-dd hh:mm" title="Start Date" Sortable="true" />
+				<PropertyColumn Property="@(ucdw => ucdw.EndDate)" Format="yyyy-MM-d hh:mm" title="End Date" Sortable="true" />
+				<PropertyColumn Property="@(ucdw => ucdw.DateStamp)" Format="yyyy-MM-dd" title="Date Registered" Sortable="true" />
+				<PropertyColumn Property="@(ucdw => ucdw.Status)" Sortable="true" />
+				<TemplateColumn Title="Booking">
+					<ChildContent Context="webcourse">
+						@if (webcourse.CourseDateBookingID != 0)
+						{
+							<button class="btn btn-sm btn-primary" @onclick="() => GetAndViewBooking(webcourse.CourseDateBookingID)">
+								View Booking
+							</button>
+						}
+					</ChildContent>
+				</TemplateColumn>
+				<TemplateColumn Title="Session Link">
+					<ChildContent Context="webcourse">
+						@if (!string.IsNullOrEmpty(webcourse.OnlinePlatformCandidateJoinUrl))
+						{
+							<a class="btn btn-sm btn-primary" href="@webcourse.OnlinePlatformCandidateJoinUrl" target="_blank" rel="noopener noreferrer">
+								Join Session
+							</a>
+						}
+					</ChildContent>
+				</TemplateColumn>
+				<TemplateColumn>
+					<ChildContent Context="webcourse">
+						<button class="btn btn-sm btn-primary" @onclick="@(() => ViewWebCourse(webcourse))">View Course</button>
+					</ChildContent>
+				</TemplateColumn>
+			</QuickGrid>
+		</div>
+	</div>
+
+	<div class="card mt-3">
+		<a class="btn w-100 d-flex justify-content-between px-3 py-2 heading expandable fw-bold align-items-center"
+		   data-bs-toggle="collapse"
+		   data-bs-target="#collapseBookingsTable"
+		   role="button"
+		   aria-expanded="false"
+		   aria-controls="collapseBookingsTable">
+			My Bookings
+			<i class="lni lni-chevron-down rotate-icon ms-2"></i>
+		</a>
+		<div class="collapse multi-collapse w-100 card" id="collapseBookingsTable">
+			<QuickGrid Items="bookings">
+				<PropertyColumn Property="@(b => b.ID)" Sortable="true" />
+				<PropertyColumn Property="@(b => b.DateCreated)" Title="Date Created" Sortable="true" />
+				<PropertyColumn Property="@(b => b.BookingType)" Sortable="true" Title="Booking Type" />
+				<PropertyColumn Property="@(b => b.BookingUserName)" Sortable="true" Title="Booking User"/>
+				<PropertyColumn Property="@(b => b.BookingStatus)" Sortable="true" Title="Booking Status"/>
+				<PropertyColumn Property="@(b => b.PONumber)" Sortable="true" Title="PO Number"/>
+				<TemplateColumn Title="Invoice IDs" Sortable="false" Align="Align.Center">
+					<CellContent>
+						@foreach (var id in context.InvoiceIDs ?? Array.Empty<string>())
+						{
+							<button class="btn btn-sm btn-primary" @onclick="() => GetAndViewInvoice(id)">
+								View Invoice: @id
+							</button>
+						}
+					</CellContent>
+				</TemplateColumn>
+				<TemplateColumn>
+					<ChildContent Context="booking">
+						<button class="btn btn-sm btn-primary" @onclick="@(() => ViewBooking(booking))">View Booking</button>
+					</ChildContent>
+				</TemplateColumn>
+			</QuickGrid>
+		</div>
+	</div>
+
+	<CommercialSite.WebApp.App.Modals.InvoiceModal @ref="invoiceModal"/>
+	<CommercialSite.WebApp.App.Modals.WebCourseModal @ref="webCourseModal" />
+	<CommercialSite.WebApp.App.Modals.BookingModal @ref="bookingModal"/>
+	<CommercialSite.WebApp.App.Modals.ElearningModal @ref="elearningModal" />
+}
+else
+{
+     <h2>Home</h2>
+}
+
+<style>
+	.close-button{
+		border:none;
+		font-size: small;
+		width:25px;
+		height:25px;
+	}
+
+	.expandable:hover {
+		background-color: #258cfb;
+		color: #fff;
+	}
+
+	.form-label {
+		font-weight: bold;
+	}
+
+	.save-button {
+		width: 100px;
+	}
+
+	.heading {
+		background-color: #e3e3e0;
+		border-radius: 5.4px;
+	}
+
+	.show {
+		border-radius: 5.4px 5.4px 0px 0px;
+	}
+
+	.rotate-icon {
+		transition: transform 0.3s ease;
+	}
+
+	a[aria-expanded="true"]
+	.rotate-icon {
+		transform: rotate(180deg);
+	}
+
+	.card {
+		background: #fff;
+		border: 1px solid #E5E7EB;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+		padding: 0px;
+	}
+</style>

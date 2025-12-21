@@ -1,0 +1,39 @@
+﻿.header-nav-button {
+	height: 70px;
+	width: 70px;
+	border: 1px solid #e0e0e5;
+	border-radius: 5px;
+/*	margin-right: 5px;*/
+	align-items: center;
+	justify-content: center;
+	display: flex;
+}
+
+.header-nav-button > a {
+	display: flex;
+	flex-direction: column;
+	color: black;
+	text-decoration: none;
+	align-items: center;
+	justify-content: center;
+}
+
+.header-nav-button > a:hover {
+	color: #fff;
+}
+
+.header-nav-button > a > i {
+	font-size: 1.4rem;
+}
+
+.header-nav-button:hover {
+	background-color: #258cfb;
+	color: #fff;
+}
+
+.dropdown-item:hover {
+	background-color: #0d6efd;
+	color: #fff;
+}
+
+		
