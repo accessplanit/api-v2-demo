@@ -1,7 +1,8 @@
 
 # Blazor Server Demo — Integrating with Accessplanit API v2
 
-A commercial demonstration showing how a **.NET 8 Blazor Server** application integrates with **Accessplanit API v2** to read and write training management data (e.g., courses, delegates, users), build your own basket and trainer portal. Including best practices for authentication, querying, and error handling.\
+A commercial demonstration showing how a **.NET 8 Blazor Server** application integrates with **Accessplanit API v2** to read and write training management data (e.g., courses, delegates, users), including best practices for authentication, querying, and error handling.\
+This demonstration also includes an example of how to build your own basket and trainer portal.
 **Note:** This demo does **not** include webhooks.
 
 > Accessplanit v2 developer resources cover authentication (token or API keys), query parameters like `$select/$filter/$orderby/$top/$skip`, standard HTTP verbs, and response codes. See the official docs for details.\
