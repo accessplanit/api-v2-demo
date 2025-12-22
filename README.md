@@ -46,7 +46,6 @@ This Blazor Server demo is built for **sales engineering and partner enablement*
 - **Backend:** .NET API Client
 - **Auth:** Bearer token or API key, supplied by Accessplanit (stored securely) \[Developer Resources]
 - **Data:** Typed DTOs for Users, Companies, Courses, Delegates (aligned with v2 feed packages) \[Modules]
-- **Observability:** Serilog for structured logs; optional OpenTelemetry
 
 **Flow overview:**
 1. User signs in to the demo using the API v2 login endpoint.
@@ -72,7 +71,7 @@ This Blazor Server demo is built for **sales engineering and partner enablement*
 ```bash
 # Clone
 git clone https://github.com/accessplanit/api-v2-demo.git
-cd <project-folder>
+cd CommercialSite.WebApp
 
 # Restore & build
 dotnet restore
