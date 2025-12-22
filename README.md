@@ -93,9 +93,10 @@ Configure via AccessPlanitTokenClient in APIClient
 > **Credentials & roles:** You’ll be provided a **username/ID** and **password** for an account with required roles; use these either to **generate a token** or to log in and create an **API key**. \[Developer Resources]
 
 ## Running the App
+Open a terminal and navigate to the folder **api-v2-demo\CommercialSite.WebApp**
 ```bash
 # Development (Blazor Server)
-dotnet run --project src/Web
+dotnet run 
 ```
 Open `https://localhost:5001` (or as shown in console). Use the navigation to explore **Users**, **Companies**, **Courses**, and **Delegates**.
 
