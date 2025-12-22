@@ -62,6 +62,7 @@ This Blazor Server demo is built for **sales engineering and partner enablement*
 ---
 
 ## Prerequisites
+- Microsoft Visual Studio 2022 **(Minimum)** or Microsoft Visual Studio Code
 - **.NET 8 SDK**
 - An **Accessplanit v2 API** subscription and credentials (token or API key). Contact your Accessplanit CSM if you need access. \[Modules]
 
@@ -81,17 +82,14 @@ dotnet build
 ---
 
 ## Configuration
-Configure via environment variables or `appsettings.json` + User Secrets.
-*********************************************************************
-*********************************************************************************
-THIS BIT NEEDS FINISHING
-**Environment variables:**
+This demo implements a service user to communicate with the API, allowing restriction of data and actions via their roles and permissions.
+Configure via AccessPlanitAPIConfig in Constants
+- `RootURI` — Base URL for your tenant’s v2 feeds (provided by Accessplanit). \[Developer Resources]
 
-- `Accessplanit__BaseUrl` — Base URL for your tenant’s v2 feeds (provided by Accessplanit). \[Developer Resources]
-- `Accessplanit__AuthMode` — `Token` or `ApiKey`. \[Developer Resources]
-- `Accessplanit__Token` — Bearer token if using token auth. \[Developer Resources]
-- `Accessplanit__ApiKey` — API key if using API key auth (keep secret). \[Developer Resources]
-- `Demo__DefaultTop` — Default page size for `$top` (e.g., 25). \[Developer Resources]
+Configure via AccessPlanitTokenClient in APIClient
+- `SuperAPIUserID` — User ID of the service user you have set up to communicate with the API. \[Developer Resources]
+- `SuperAPIPassword` — Password of the above user. \[Developer Resources]
+- `SuperUserAPIKey` — API key if using API key auth (keep secret). \[Developer Resources]
 
 > **Credentials & roles:** You’ll be provided a **username/ID** and **password** for an account with required roles; use these either to **generate a token** or to log in and create an **API key**. \[Developer Resources]
 
@@ -105,6 +103,7 @@ Open `https://localhost:5001` (or as shown in console). Use the navigation to ex
 ---
 
 ## Accessplanit API Basics
+This demo implements a URL Builder found in Services > FluentUrlBuilder.cs
 **HTTP Verbs & Responses** — v2 feeds support GET, POST, PUT, DELETE with documented response codes. \[Developer Resources]
 
 **Selecting & Filtering Data**
@@ -161,7 +160,7 @@ Headers: `Authorization: Bearer <Accessplanit__Token>` **or** ` <Accessplanit__A
 
 ## Security & Compliance
 - **Do not commit secrets** (tokens, API keys) to Git. Rotate credentials regularly. \[Developer Resources, Terms]
-- Respect **API Terms of Use**, including secure handling of keys and **rate limits** (per-hour caps; request higher limits via Accessplanit). \[Terms]
+- Respect **API Terms of Use**, including secure handling of keys. \[Terms]
 - Use HTTPS; limit CORS to trusted origins.
 
 ---
