@@ -143,11 +143,11 @@ else
         try
         {
             var courseResult = await AccessPlanitCourseClient.GetAll<Course>();
-            courses = courseResult.AsQueryable();
+            courses = (courseResult ?? new List<Course>()).AsQueryable();
             filteredCourses = courses;
 
             var courseDateResult = await AccessPlanitCourseDateClient.GetAll<CourseDate>();
-            courseDates = courseDateResult.AsQueryable();
+            courseDates = (courseDateResult ?? new List<CourseDate>()).AsQueryable();
             filteredCourseDates = courseDates;
         }
         catch (Exception ex)

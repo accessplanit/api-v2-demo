@@ -1,4 +1,5 @@
-﻿using Models;
+﻿using Blazored.LocalStorage;
+using Models;
 
 namespace Services
 {
@@ -9,7 +10,12 @@ namespace Services
         private Basket _basket;
         private string _latestErrorMessage = string.Empty;
 
-        public StateManagementService() {}
+        private readonly ILocalStorageService _localStorage;
+
+        public StateManagementService(ILocalStorageService localStorage)
+        {
+            _localStorage = localStorage;
+        }
 
         public string LatestErrorMessage
         {
@@ -74,6 +80,33 @@ namespace Services
         {
             Token = token;
             NotifyStateChanged();
+        }
+
+        /// <summary>
+        /// Restores the token saved at login from local storage when none is held in memory
+        /// (e.g. after a browser reload creates a new circuit). Does nothing if storage is
+        /// unavailable, such as during prerendering.
+        /// </summary>
+        public async Task EnsureTokenAsync()
+        {
+            if (Token is not null)
+                return;
+
+            try
+            {
+                var stored = await _localStorage.GetItemAsync<Token>("authToken");
+
+                if (stored is not null && !string.IsNullOrEmpty(stored.AccessToken))
+                    Token = stored;
+            }
+            catch (InvalidOperationException)
+            {
+                // JS interop isn't available yet (prerender); a later request will retry.
+            }
+            catch (Exception ex)
+            {
+                SetLatestErrorMessage($"Could not restore the saved login token. {ex.Message}");
+            }
         }
 
         public void Logout()

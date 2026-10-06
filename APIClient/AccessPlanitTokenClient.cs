@@ -45,7 +45,7 @@ namespace APIClient
 
                 var response = await base.SendAsync(request);
 
-                if (response.IsSuccessStatusCode)
+                if (response is not null && response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var token = TokenHandler.ConvertAccessPlanitToken(responseContent);
@@ -54,13 +54,14 @@ namespace APIClient
                 }
                 else
                 {
-                    StateManagementService.SetLatestErrorMessage("Something went wrong trying to communicate with the API");
+                    var status = response is null ? "no response" : response.StatusCode.ToString();
+                    StateManagementService.SetLatestErrorMessage($"Could not get an API token. Status: {status}");
                     return null;
                 }
             }
             catch (Exception ex)
             {
-                StateManagementService.SetLatestErrorMessage($"String definition of enum type hasn't been specified");
+                StateManagementService.SetLatestErrorMessage($"Could not get an API token. {ex.Message}");
                 return null;
             }
         }

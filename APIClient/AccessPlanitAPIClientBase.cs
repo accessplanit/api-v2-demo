@@ -45,17 +45,20 @@ namespace APIClient
 
                 var response = await SendAsync(request);
 
+                if (response is null)
+                    return new List<T>();
+
                 if (response.IsSuccessStatusCode)
-                    return await ConvertResponseCollection<T>(response);
+                    return await ConvertResponseCollection<T>(response) ?? new List<T>();
                 else
-                    StateManagementService.SetLatestErrorMessage($"Something went wrong whilst trying to get all records in module");
+                    StateManagementService.SetLatestErrorMessage($"Failed to get all records in module. Status: {response.StatusCode}");
             }
             catch (Exception ex)
             {
                 StateManagementService.SetLatestErrorMessage($"Something went wrong. {ex.Message}");
             }
 
-            return null;
+            return new List<T>();
         }
 
         public virtual async Task<List<T>> GetByCriteria<T>(List<Filter> filters, IEnumerable<string>? propertyNames = null) where T : class, new()
@@ -325,6 +328,9 @@ namespace APIClient
 
         protected async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken? cancellationToken = default)
         {
+            if (StateManagementService.Token is null)
+                await StateManagementService.EnsureTokenAsync();
+
             var token = StateManagementService.Token;
 
             if (token != null)

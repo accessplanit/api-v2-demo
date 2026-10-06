@@ -199,20 +199,16 @@
                 @if (SelectedBasketItem != null)
                 {
                     <br />
-                    <div class="row g-0">
-                        <div class="col-md-10">
-                            <select class="form-select" aria-label="Default select" @bind="selectedUserID">
-                                <option selected>Select user ...</option>
-                                @foreach (var user in AvailableUsers)
-                                {
-                                    var userName = $"{user.Forenames} {user.Surname} ({user.MainCompanyName}) - {user.EmailAddress}";
-                                    <option value="@user.UserID">@userName</option>
-                                }
-                            </select>
-                        </div>
-                        <div class="col-md-2" style="text-align:center;">
-                            <button class="btn btn-primary" @onclick="() => AddUser()">Add</button>
-                        </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <select class="form-select flex-grow-1" aria-label="Default select" @bind="selectedUserID">
+                            <option selected>Select user ...</option>
+                            @foreach (var user in AvailableUsers)
+                            {
+                                var userName = $"{user.Forenames} {user.Surname} ({user.MainCompanyName}) - {user.EmailAddress}";
+                                <option value="@user.UserID">@userName</option>
+                            }
+                        </select>
+                        <button class="btn btn-primary flex-shrink-0" @onclick="() => AddUser()">Add</button>
                     </div>
                 }
             </Body>
