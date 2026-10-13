@@ -18,28 +18,41 @@
 
 @if (StateManagementService.IsLoggedIn)
 {
-    string message = $"Welcome {StateManagementService.LoggedInUser.Fullname}";
-    <h2>@message</h2>
-    <br />
+    string message = $"Welcome back, {StateManagementService.LoggedInUser.Fullname}";
+    <h2 class="mb-0">@message</h2>
+    <p class="text-secondary">Your courses, bookings and invoices in one place.</p>
+
+    <div class="summary-tiles">
+        <div class="summary-tile"><small>Courses</small><strong>@((courses?.Count() ?? 0) + (WebCourses?.Count() ?? 0))</strong></div>
+        <div class="summary-tile"><small>eLearning</small><strong>@(UsersElearningPackages?.Count() ?? 0)</strong></div>
+        <div class="summary-tile"><small>Bookings</small><strong>@(bookings?.Count() ?? 0)</strong></div>
+        <div class="summary-tile"><small>Outstanding</small><strong>@((Invoices?.Sum(i => i.Outstanding) ?? 0).ToString("C2"))</strong></div>
+    </div>
 
 	<div class="card mt-3">
-		<a class="btn w-100 d-flex justify-content-between px-3 py-2 heading expandable fw-bold align-items-center"
+		<a class="section-toggle"
 		   data-bs-toggle="collapse"
 		   data-bs-target="#collapseInvoiceTable"
 		   role="button"
 		   aria-expanded="false"
 		   aria-controls="collapseInvoiceTable">
-			My Invoices
-			<i class="lni lni-chevron-down rotate-icon ms-2"></i>
+			<span class="d-flex align-items-center gap-2">
+				<i class="lni lni-empty-file"></i>
+				Invoices
+				<span class="count-pill">@(Invoices?.Count() ?? 0)</span>
+			</span>
+			<i class="lni lni-chevron-down rotate-icon"></i>
 		</a>
 		<div class="collapse multi-collapse w-100" id="collapseInvoiceTable">
 			<div style="overflow-x: auto; white-space: nowrap;">
 				<QuickGrid Items="Invoices">
 					<PropertyColumn Property="@(i => i.Reference)" Sortable="true" Title="Reference"/>
 					<PropertyColumn Property="@(i => i.CompanyName)" Sortable="true" Title="Company Name"/>
-					<PropertyColumn Property="@(i => i.DateCreated)" Format="yyyy-MM-dd" Sortable="true" Title="Date Created"/>
-					<PropertyColumn Property="@(i => i.DateDue)" Format="yyyy-MM-dd" Sortable="true" Title="Date Due"/>
-					<PropertyColumn Property="@(i => i.Status)" Sortable="true" Title="Status"/>
+					<PropertyColumn Property="@(i => i.DateCreated)" Format="dd MMM yyyy" Sortable="true" Title="Date Created"/>
+					<PropertyColumn Property="@(i => i.DateDue)" Format="dd MMM yyyy" Sortable="true" Title="Date Due"/>
+					<TemplateColumn Title="Status" SortBy="@(GridSort<Invoice>.ByAscending(i => i.Status))">
+							<span class="status-pill @(context.Outstanding > 0 ? "status-due" : "status-ok")">@context.Status</span>
+						</TemplateColumn>
 					<PropertyColumn Property="@(i => i.Amount)" Sortable="true" Title="Amount" Format="C2" Align="Align.Right" />
 					<PropertyColumn Property="@(i => i.AmountPaid)" Sortable="true" Title="Paid" Format="C2"  Align="Align.Right" />
 					<PropertyColumn Property="@(i => i.Outstanding)" Sortable="true" Title="Outstanding" Format="C2" Align="Align.Right" />
@@ -54,14 +67,18 @@
 	</div>
 
 	<div class="card mt-3">
-		<a class="btn w-100 d-flex justify-content-between px-3 py-2 heading expandable fw-bold align-items-center"
+		<a class="section-toggle"
 		   data-bs-toggle="collapse"
-		   href="#collapseElearningTable"
+		   data-bs-target="#collapseElearningTable"
 		   role="button"
 		   aria-expanded="false"
 		   aria-controls="collapseElearningTable">
-			My eLearning Courses
-			<i class="lni lni-chevron-down rotate-icon ms-2"></i>
+			<span class="d-flex align-items-center gap-2">
+				<i class="lni lni-laptop"></i>
+				eLearning courses
+				<span class="count-pill">@(UsersElearningPackages?.Count() ?? 0)</span>
+			</span>
+			<i class="lni lni-chevron-down rotate-icon"></i>
 		</a>
 		<div class="collapse multi-collapse w-100" id="collapseElearningTable">
 			<div style="overflow-x: auto; white-space: nowrap;">
@@ -86,42 +103,50 @@
 	</div>
 
 	<div class="card mt-3">
-		<a class="btn w-100 d-flex justify-content-between px-3 py-2 heading expandable fw-bold align-items-center"
+		<a class="section-toggle"
 		   data-bs-toggle="collapse"
 		   data-bs-target="#collapseCourseTable"
 		   role="button"
 		   aria-expanded="false"
 		   aria-controls="collapseCourseTable">
-			My Courses
-			<i class="lni lni-chevron-down rotate-icon ms-2"></i>
+			<span class="d-flex align-items-center gap-2">
+				<i class="lni lni-calendar"></i>
+				Courses
+				<span class="count-pill">@(courses?.Count() ?? 0)</span>
+			</span>
+			<i class="lni lni-chevron-down rotate-icon"></i>
 		</a>
 		<div class="collapse multi-collapse w-100" id="collapseCourseTable">
 			<QuickGrid Items="courses">
 				<PropertyColumn Property="@(ucd => ucd.CourseOrAliasName)" title="Course Name" Sortable="true" />
-				<PropertyColumn Property="@(ucd => ucd.StartDate)" Format="yyyy-MM-dd hh:mm" title="Start Date" Sortable="true" />
-				<PropertyColumn Property="@(ucd => ucd.EndDate)" Format="yyyy-MM-d hh:mm" title="End Date" Sortable="true" />
-				<PropertyColumn Property="@(ucd => ucd.DateStamp)" Format="yyyy-MM-dd" title="Date Registered" Sortable="true" />
+				<PropertyColumn Property="@(ucd => ucd.StartDate)" Format="dd MMM yyyy HH:mm" title="Start Date" Sortable="true" />
+				<PropertyColumn Property="@(ucd => ucd.EndDate)" Format="dd MMM yyyy HH:mm" title="End Date" Sortable="true" />
+				<PropertyColumn Property="@(ucd => ucd.DateStamp)" Format="dd MMM yyyy" title="Date Registered" Sortable="true" />
 				<PropertyColumn Property="@(ucd => ucd.Status)" Sortable="true" />
 			</QuickGrid>
 		</div>
 	</div>
 
 	<div class="card mt-3">
-		<a class="btn w-100 d-flex justify-content-between px-3 py-2 heading expandable fw-bold align-items-center"
+		<a class="section-toggle"
 		   data-bs-toggle="collapse"
 		   data-bs-target="#collapseWebCourseTable"
 		   role="button"
 		   aria-expanded="false"
-		   aria-controls="collapseCourseTable">
-			My Web Courses
-			<i class="lni lni-chevron-down rotate-icon ms-2"></i>
+		   aria-controls="collapseWebCourseTable">
+			<span class="d-flex align-items-center gap-2">
+				<i class="lni lni-world"></i>
+				Web courses
+				<span class="count-pill">@(WebCourses?.Count() ?? 0)</span>
+			</span>
+			<i class="lni lni-chevron-down rotate-icon"></i>
 		</a>
 		<div class="collapse multi-collapse w-100" id="collapseWebCourseTable">
 			<QuickGrid Items="WebCourses">
 				<PropertyColumn Property="@(ucdw => ucdw.CourseOrAliasName)" title="Course Name" Sortable="true" />
-				<PropertyColumn Property="@(ucdw => ucdw.StartDate)" Format="yyyy-MM-dd hh:mm" title="Start Date" Sortable="true" />
-				<PropertyColumn Property="@(ucdw => ucdw.EndDate)" Format="yyyy-MM-d hh:mm" title="End Date" Sortable="true" />
-				<PropertyColumn Property="@(ucdw => ucdw.DateStamp)" Format="yyyy-MM-dd" title="Date Registered" Sortable="true" />
+				<PropertyColumn Property="@(ucdw => ucdw.StartDate)" Format="dd MMM yyyy HH:mm" title="Start Date" Sortable="true" />
+				<PropertyColumn Property="@(ucdw => ucdw.EndDate)" Format="dd MMM yyyy HH:mm" title="End Date" Sortable="true" />
+				<PropertyColumn Property="@(ucdw => ucdw.DateStamp)" Format="dd MMM yyyy" title="Date Registered" Sortable="true" />
 				<PropertyColumn Property="@(ucdw => ucdw.Status)" Sortable="true" />
 				<TemplateColumn Title="Booking">
 					<ChildContent Context="webcourse">
@@ -153,14 +178,18 @@
 	</div>
 
 	<div class="card mt-3">
-		<a class="btn w-100 d-flex justify-content-between px-3 py-2 heading expandable fw-bold align-items-center"
+		<a class="section-toggle"
 		   data-bs-toggle="collapse"
 		   data-bs-target="#collapseBookingsTable"
 		   role="button"
 		   aria-expanded="false"
 		   aria-controls="collapseBookingsTable">
-			My Bookings
-			<i class="lni lni-chevron-down rotate-icon ms-2"></i>
+			<span class="d-flex align-items-center gap-2">
+				<i class="lni lni-bookmark"></i>
+				Bookings
+				<span class="count-pill">@(bookings?.Count() ?? 0)</span>
+			</span>
+			<i class="lni lni-chevron-down rotate-icon"></i>
 		</a>
 		<div class="collapse multi-collapse w-100 card" id="collapseBookingsTable">
 			<QuickGrid Items="bookings">
@@ -207,9 +236,77 @@ else
 		height:25px;
 	}
 
-	.expandable:hover {
-		background-color: #258cfb;
-		color: #fff;
+	.section-toggle {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		width: 100%;
+		padding: 0.75rem 1rem;
+		font-weight: 600;
+		color: #1c2333;
+		text-decoration: none;
+		background: #fff;
+		border-radius: 10px;
+	}
+
+	.section-toggle:hover {
+		background-color: #eef5ff;
+		color: #1c2333;
+	}
+
+	.section-toggle[aria-expanded="true"] {
+		border-radius: 10px 10px 0 0;
+		border-bottom: 1px solid #E5E7EB;
+	}
+
+	.count-pill {
+		background: #eaf2ff;
+		color: #185fa5;
+		border-radius: 999px;
+		padding: 0 0.5rem;
+		font-size: 0.75rem;
+		font-weight: 500;
+	}
+
+	.summary-tiles {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+		gap: 0.75rem;
+		margin: 1rem 0;
+	}
+
+	.summary-tile {
+		background: #fff;
+		border: 1px solid #E5E7EB;
+		border-radius: 10px;
+		padding: 0.75rem 1rem;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.summary-tile small {
+		color: #5b6475;
+	}
+
+	.summary-tile strong {
+		font-size: 1.4rem;
+		font-weight: 500;
+	}
+
+	.status-pill {
+		border-radius: 4px;
+		padding: 0.1rem 0.5rem;
+		font-size: 0.8rem;
+	}
+
+	.status-due {
+		background: #fff3dc;
+		color: #7a4b06;
+	}
+
+	.status-ok {
+		background: #e6f6ec;
+		color: #17673a;
 	}
 
 	.form-label {
@@ -220,21 +317,11 @@ else
 		width: 100px;
 	}
 
-	.heading {
-		background-color: #e3e3e0;
-		border-radius: 5.4px;
-	}
-
-	.show {
-		border-radius: 5.4px 5.4px 0px 0px;
-	}
-
 	.rotate-icon {
 		transition: transform 0.3s ease;
 	}
 
-	a[aria-expanded="true"]
-	.rotate-icon {
+	a[aria-expanded="true"] .rotate-icon {
 		transform: rotate(180deg);
 	}
 

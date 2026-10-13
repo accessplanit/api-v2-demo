@@ -79,7 +79,7 @@ else
 
                     @if (visibleGrids.ContainsKey(course.ID) && visibleGrids[course.ID])
                     {
-                        <div class="p-4 pt-0 w-100">
+                        <div class="p-4 pt-0 w-100 dates-wrap">
                             <QuickGrid Items="filteredCourseDates.Where(cd => cd.CourseID == course.ID)" Pagination="@GetPaginationState(course.ID)" style="width: 100%">
                                 <PropertyColumn Property="@(d => d.StartDate)" Title="Start Date" Sortable="true" />
                                 <PropertyColumn Property="@(d => d.EndDate)" Title="End Date" Sortable="true" />
@@ -338,9 +338,70 @@ else
         margin-top: 0.625rem;
     }
 
-    .btn {
-        width: 145px;
-    } 
+    .course-card .btn {
+        min-width: 7rem;
+    }
+
+    .dates-wrap {
+        container-type: inline-size;
+        overflow-x: auto;
+    }
+
+    /* Narrow card: stack each date as a labelled block instead of a wide table */
+    @@container (max-width: 760px) {
+        .dates-wrap table,
+        .dates-wrap tbody {
+            display: block;
+            width: 100%;
+        }
+
+        .dates-wrap thead {
+            display: none;
+        }
+
+        .dates-wrap tbody tr {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.25rem 1rem;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+        }
+
+        .dates-wrap tbody td {
+            display: block;
+            padding: 0;
+            border: 0;
+            height: auto;
+            overflow: visible;
+            white-space: normal;
+        }
+
+        .dates-wrap tbody td::before {
+            display: block;
+            font-size: 0.75rem;
+            color: #5b6475;
+        }
+
+        .dates-wrap tbody td:nth-child(1)::before { content: "Start"; }
+        .dates-wrap tbody td:nth-child(2)::before { content: "End"; }
+        .dates-wrap tbody td:nth-child(3)::before { content: "Hours"; }
+        .dates-wrap tbody td:nth-child(4)::before { content: "Status"; }
+        .dates-wrap tbody td:nth-child(5)::before { content: "Cost"; }
+        .dates-wrap tbody td:nth-child(6)::before { content: "Venue"; }
+        .dates-wrap tbody td:nth-child(7)::before { content: "Town"; }
+        .dates-wrap tbody td:nth-child(8)::before { content: "Places"; }
+
+        .dates-wrap tbody td:nth-child(9) {
+            grid-column: 1 / -1;
+            text-align: left;
+        }
+
+        .dates-wrap tbody td:nth-child(9)::before {
+            content: none;
+        }
+    }
 
     input[type="search"] {
         border: none;

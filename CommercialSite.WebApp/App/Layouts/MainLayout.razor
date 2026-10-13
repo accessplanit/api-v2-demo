@@ -2,6 +2,8 @@
 
 @inherits LayoutComponentBase
 @inject StateManagementService StateManagementService
+@inject AccessPlanitAPIClient AccessPlanitAPIClient
+@inject AccessPlanitAPIBasketClient BasketClient
 
 
 <div id="main-layout">
@@ -16,7 +18,10 @@
         </div>
         <div id="content" class="m-4">
             <ErrorBanner />
-            @Body
+            @if (sessionChecked)
+            {
+                @Body
+            }
         </div>
         <CommercialSite.WebApp.App.Basket.ShoppingBasket/>
     </div>
@@ -26,9 +31,46 @@
 
     public bool IsLoggedIn { get; set; }
 
-    protected override void OnInitialized()
+    private bool sessionChecked;
+
+    protected override async Task OnInitializedAsync()
     {
+        await RestoreSessionAsync();
+
         IsLoggedIn = StateManagementService.IsLoggedIn;
+        sessionChecked = true;
+    }
+
+    // A reload starts a new circuit with empty state, so rebuild the user from the saved ID
+    // before any page renders and reads it.
+    private async Task RestoreSessionAsync()
+    {
+        if (StateManagementService.IsLoggedIn)
+            return;
+
+        try
+        {
+            var userId = await StateManagementService.GetPersistedUserIdAsync();
+
+            if (string.IsNullOrEmpty(userId))
+                return;
+
+            var user = await AccessPlanitAPIClient.GetById<User>(userId);
+
+            if (user is null)
+            {
+                await StateManagementService.ClearPersistedUserIdAsync();
+                return;
+            }
+
+            user.ID = userId;
+            StateManagementService.SetLoggedInUser(user);
+            StateManagementService.Basket = await BasketClient.GetBasketForUser(userId);
+        }
+        catch (Exception ex)
+        {
+            StateManagementService.SetLatestErrorMessage($"Could not restore your session: {ex.Message}");
+        }
     }
 }
 

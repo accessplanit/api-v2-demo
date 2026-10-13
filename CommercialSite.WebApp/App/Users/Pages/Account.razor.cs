@@ -12,6 +12,12 @@ namespace CommercialSite.WebApp.App.Users.Pages
 		{
 			//Have to create new User to decouple the instances of the User object from the one we want to
 			//update vs. the one we have in the statemanagement
+			if (!StateManagementService.IsLoggedIn)
+			{
+				Navigation.NavigateTo("/login");
+				return;
+			}
+
 			LoggedInUserDetails = new User(StateManagementService.LoggedInUser);
 			StateHasChanged();
 		}
@@ -20,7 +26,7 @@ namespace CommercialSite.WebApp.App.Users.Pages
 		{
 			try
 			{
-				if (LoggedInUserDetails == null)
+				if (LoggedInUserDetails == null && StateManagementService.IsLoggedIn)
 					LoggedInUserDetails = new User(StateManagementService.LoggedInUser);
 
 			}
@@ -29,6 +35,25 @@ namespace CommercialSite.WebApp.App.Users.Pages
 				StateManagementService.SetLatestErrorMessage($"Something went wrong: {ex.Message}");
 				throw;
 			}
+		}
+
+		private bool isDirty;
+		private bool isSaved;
+
+		private string Initials =>
+			$"{LoggedInUserDetails?.Forenames?.FirstOrDefault()}{LoggedInUserDetails?.Surname?.FirstOrDefault()}".ToUpperInvariant();
+
+		private void OnFormChanged()
+		{
+			isDirty = true;
+			isSaved = false;
+		}
+
+		private void DiscardChanges()
+		{
+			LoggedInUserDetails = new User(StateManagementService.LoggedInUser);
+			isDirty = false;
+			isSaved = false;
 		}
 
 		private async Task UpdateUser()
@@ -40,7 +65,11 @@ namespace CommercialSite.WebApp.App.Users.Pages
 				var result = await AccessPlanitUserClient.UpdateUser(LoggedInUserDetails.ID, updatedUserDetails);
 
 				if (result)
+				{
 					StateManagementService.LoggedInUser = LoggedInUserDetails;
+					isDirty = false;
+					isSaved = true;
+				}
 			}
 			catch (Exception ex)
 			{

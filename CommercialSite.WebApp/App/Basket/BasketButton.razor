@@ -53,28 +53,32 @@
 }
 
 <script type="text/javascript">
-    let closed = true;
-
-    function toggleBasket(){
-        if(closed){
-            openNav();
-        }
-        else{
-            closeNav();
-        }
-
-        closed = !closed;
+    function isBasketOpen(){
+        return document.body.classList.contains("basket-open");
     }
 
-	function openNav() {
-      document.getElementById("shopping-basket").style.width = "25rem";
-	  document.getElementById("main-content").style.paddingRight = "25rem"; /* Shift left */
-	}
+    function toggleBasket(){
+        if(isBasketOpen()){
+            closeNav();
+        }
+        else{
+            openNav();
+        }
+    }
 
-	function closeNav() {
-      document.getElementById("shopping-basket").style.width = "0";
-	  document.getElementById("main-content").style.paddingRight = "0";
-	}
+    function openNav() {
+        document.body.classList.add("basket-open");
+    }
+
+    function closeNav() {
+        document.body.classList.remove("basket-open");
+    }
+
+    document.addEventListener("keydown", function(e){
+        if(e.key === "Escape" && isBasketOpen()){
+            closeNav();
+        }
+    });
 
 </script>
 

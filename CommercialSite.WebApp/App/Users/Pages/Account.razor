@@ -1,4 +1,4 @@
-﻿@page "/account";
+@page "/account";
 
 @layout MainLayout
 @inject AccessPlanitUserClient AccessPlanitUserClient
@@ -11,40 +11,41 @@
 @inject InvoiceService InvoiceService
 @inject AccessPlanitCourseDateBookingClient AccessPlanitCourseDateBookingClient
 
+<PageTitle>My Account</PageTitle>
 
+@if (LoggedInUserDetails != null)
+{
+<form class="account-form" @onchange="OnFormChanged" @onsubmit:preventDefault>
+	<div class="d-flex align-items-center gap-3 mb-3">
+		<div class="account-avatar">@Initials</div>
+		<div>
+			<h2 class="mb-0">My Account</h2>
+			<div class="text-secondary">Update your details and preferences</div>
+		</div>
+	</div>
 
-<form class="row g-1 " >
-	<div class="header d-grid gap-2 d-md-flex justify-content-md-between mb-3 align-items-md-center">
-		<h2>My Account</h2>
-		<button class="btn btn-primary fw-bold save-button" @onclick="() => UpdateUser()">
-			<div class="d-flex align-items-md-center justify-content-center gap-2">
-				<i class="lni lni-save"></i>
-				<div>Save</div>
-			</div>
-		</button>
-	</div>	
-	<div class="card" id="collapsePersonalFields">
-		<div class="w-100 d-flex justify-content-between px-3 py-2 heading fw-bold show">Personal</div>
-		<div class="collapse multi-collapse show p-3">
-			<div class="col-md-6 mb-3">
+	<div class="card account-card">
+		<h3 class="account-card-title"><i class="lni lni-user"></i>Personal</h3>
+		<div class="row g-3 p-3">
+			<div class="col-md-6">
 				<label for="Forenames" class="form-label">Forenames</label>
 				<input type="text" class="form-control" id="Forenames" @bind-value="@LoggedInUserDetails.Forenames">
 			</div>
-			<div class="col-md-6 mb-3">
-				<label for="MiddleNames" class="form-label">MiddleNames</label>
-				<input type="text" class="form-control" id="MiddleNames" @bind-value="@LoggedInUserDetails.MiddleNames">
-			</div>
-			<div class="col-md-6 mb-3">
+			<div class="col-md-6">
 				<label for="Surname" class="form-label">Surname</label>
 				<input type="text" class="form-control" id="Surname" @bind-value="@LoggedInUserDetails.Surname">
 			</div>
-			<div class="col-md-6 mb-3">
-				<label for="DOB" class="form-label">DOB</label>
+			<div class="col-md-6">
+				<label for="MiddleNames" class="form-label">Middle names</label>
+				<input type="text" class="form-control" id="MiddleNames" @bind-value="@LoggedInUserDetails.MiddleNames">
+			</div>
+			<div class="col-md-6">
+				<label for="DOB" class="form-label">Date of birth</label>
 				<input type="date" class="form-control" id="DOB" @bind-value="@LoggedInUserDetails.DOB">
 			</div>
 			<div class="col-md-6">
 				<label for="Gender" class="form-label">Gender</label>
-				<select class="form-select form-select" id="Gender" @bind="@LoggedInUserDetails.Sex">
+				<select class="form-select" id="Gender" @bind="@LoggedInUserDetails.Sex">
 					<option value="Female">Female</option>
 					<option value="Male">Male</option>
 					<option value="Intersex">Intersex</option>
@@ -54,72 +55,103 @@
 			</div>
 		</div>
 	</div>
-	
-	<div class="card mt-3">
-		<div class="w-100 d-flex justify-content-between px-3 py-2 heading fw-bold show">Change Password</div>
-		<div class="collapse multi-collapse show p-3" id="collapsePasswordFields">
-			<div class="col-md-6 mb-3">
-				<label for="DOB" class="form-label">Password</label>
-				<input type="password" class="form-control" id="Password" >
-			</div>	
-			<div class="col-md-6 mb-3">
-				<label for="ConfirmPassword" class="form-label">Confirm Password</label>
-				<input type="password" class="form-control" id="ConfirmPassword" >
+
+	<div class="card account-card">
+		<h3 class="account-card-title"><i class="lni lni-envelope"></i>Contact</h3>
+		<div class="row g-3 p-3">
+			<div class="col-12">
+				<label for="Email" class="form-label">Email address</label>
+				<input type="email" class="form-control" id="Email" @bind-value="@LoggedInUserDetails.Email">
 			</div>
-			<div class="col-md-6 mb-3">
-				<label for="PasswordHint" class="form-label">Password Hint</label>
-				<input type="text" class="form-control" id="PasswordHint">
+			<div class="col-md-6">
+				<label for="Mobile" class="form-label">Mobile number</label>
+				<input type="tel" class="form-control" id="Mobile" @bind-value="@LoggedInUserDetails.Mobile">
+			</div>
+			<div class="col-md-6">
+				<label for="Phone" class="form-label">Phone number</label>
+				<input type="tel" class="form-control" id="Phone" @bind-value="@LoggedInUserDetails.Phone">
+			</div>
+			<div class="col-md-6">
+				<label for="Fax" class="form-label">Fax number</label>
+				<input type="text" class="form-control" id="Fax" @bind-value="@LoggedInUserDetails.Fax">
+			</div>
+			<div class="col-12">
+				<div class="form-check">
+					<input type="checkbox" class="form-check-input" id="MarketingOptIn" @bind="@LoggedInUserDetails.MarketingOptIn">
+					<label for="MarketingOptIn" class="form-check-label">Send me course updates and offers</label>
+				</div>
 			</div>
 		</div>
 	</div>
 
-	<div class="card mt-3">
-		<div class="w-100 d-flex justify-content-between px-3 py-2 heading fw-bold show">Address</div>
-		<div class="collapse multi-collapse show p-3" id="collapseAddressFields">
-			<div class="col-md-6 mb-3">
+	<div class="card account-card">
+		<h3 class="account-card-title"><i class="lni lni-map-marker"></i>Address</h3>
+		<div class="row g-3 p-3">
+			<div class="col-12">
 				<label for="Address" class="form-label">Address</label>
 				<input type="text" class="form-control" id="Address" @bind-value="@LoggedInUserDetails.Address">
 			</div>
-			<div class="col-md-6 mb-3">
+			<div class="col-md-6">
 				<label for="Town" class="form-label">Town</label>
 				<input type="text" class="form-control" id="Town" @bind-value="@LoggedInUserDetails.Town">
 			</div>
-			<div class="col-md-6 mb-3">
+			<div class="col-md-6">
 				<label for="County" class="form-label">County</label>
 				<input type="text" class="form-control" id="County" @bind-value="@LoggedInUserDetails.County">
 			</div>
-			<div class="col-md-6 mb-3">
+			<div class="col-md-6">
 				<label for="Postcode" class="form-label">Postcode</label>
 				<input type="text" class="form-control" id="Postcode" @bind-value="@LoggedInUserDetails.Postcode">
 			</div>
-	</div>
+		</div>
 	</div>
 
-	<div class="card mt-3">
-		<div class="w-100 d-flex justify-content-between px-3 py-2 heading fw-bold show">Contact</div>
-		<div class="collapse multi-collapse p-3 show" id="collapseContactFields">
-			<div class="col-md-6 mb-3">
-				<label for="Email" class="form-label">Email Address</label>
-				<input type="email" class="form-control" id="Email" @bind-value="@LoggedInUserDetails.Email">
-			</div>
-			<div class="col-md-6 mb-3">
-				<label for="Mobile " class="form-label">Mobile Number</label>
-				<input type="tel" class="form-control" id="Mobile" @bind-value="@LoggedInUserDetails.Mobile">
-			</div>
-			<div class="col-md-6 mb-3">
-				<label for="Phone" class="form-label">Phone Number</label>
-				<input type="tel" class="form-control" id="Phone" @bind-value="@LoggedInUserDetails.Phone">
-			</div>
-			<div class="col-md-6 mb-3">
-				<label for="Fax" class="form-label">Fax Number</label>
-				<input type="text" class="form-control" id="Fax" @bind-value="@LoggedInUserDetails.Fax">
-			</div>
-			<div class="form-check">
-				<label for="MarketingOptIn" class="form-label">Marketing Opt-In</label>
-				<input type="checkbox" class="form-check-input" id="MarketingOptIn" @bind="@LoggedInUserDetails.MarketingOptIn">
+	<div class="card account-card">
+		<div class="account-card-title no-border justify-content-between">
+			<h3 class="m-0 d-flex align-items-center gap-2"><i class="lni lni-lock-alt"></i>Password</h3>
+			<button type="button" class="btn btn-outline-secondary btn-sm"
+					data-bs-toggle="collapse"
+					data-bs-target="#collapsePasswordFields"
+					aria-expanded="false"
+					aria-controls="collapsePasswordFields">
+				Change password
+			</button>
+		</div>
+		<div class="collapse" id="collapsePasswordFields">
+			<div class="row g-3 p-3">
+				<div class="col-md-6">
+					<label for="Password" class="form-label">New password</label>
+					<input type="password" class="form-control" id="Password" autocomplete="new-password">
+				</div>
+				<div class="col-md-6">
+					<label for="ConfirmPassword" class="form-label">Confirm password</label>
+					<input type="password" class="form-control" id="ConfirmPassword" autocomplete="new-password">
+				</div>
+				<div class="col-md-6">
+					<label for="PasswordHint" class="form-label">Password hint</label>
+					<input type="text" class="form-control" id="PasswordHint">
+				</div>
 			</div>
 		</div>
 	</div>
+
+	<div class="save-bar">
+		<span class="text-secondary">
+			@if (isSaved)
+			{
+				<i class="lni lni-checkmark-circle"></i><text> Changes saved</text>
+			}
+			else if (isDirty)
+			{
+				<text>You have unsaved changes</text>
+			}
+		</span>
+		<span class="d-flex gap-2">
+			<button type="button" class="btn btn-outline-secondary" disabled="@(!isDirty)" @onclick="DiscardChanges">Discard</button>
+			<button type="button" class="btn btn-primary fw-bold" disabled="@(!isDirty)" @onclick="UpdateUser">
+				<i class="lni lni-save me-1"></i>Save changes
+			</button>
+		</span>
+	</div>
 </form>
-
-
+}

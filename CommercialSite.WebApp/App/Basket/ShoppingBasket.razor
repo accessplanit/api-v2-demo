@@ -2,7 +2,8 @@
 @inject AccessPlanitAPIBasketClient basketClient
 @using WebApp.App.Modals
 
-<div id="shopping-basket" class="sidebar">
+<div id="basket-scrim" onclick="closeNav()"></div>
+<div id="shopping-basket" class="sidebar" aria-label="My Basket">
     <div class="cart-body">
         <div class="row">
             <div class="col-md-12">
@@ -200,21 +201,20 @@
                 {
                     <br />
                     <div class="d-flex align-items-center gap-3">
-                        <select class="form-select flex-grow-1" aria-label="Default select" @bind="selectedUserID">
-                            <option selected>Select user ...</option>
+                        <select class="form-select flex-grow-1" aria-label="Select a delegate to add" value="@selectedUserID" @onchange="OnUserSelected">
+                            <option value="">Select user ...</option>
                             @foreach (var user in AvailableUsers)
                             {
                                 var userName = $"{user.Forenames} {user.Surname} ({user.MainCompanyName}) - {user.EmailAddress}";
                                 <option value="@user.UserID">@userName</option>
                             }
                         </select>
-                        <button class="btn btn-primary flex-shrink-0" @onclick="() => AddUser()">Add</button>
                     </div>
                 }
             </Body>
             <Footer>
                 <div class="row">
-                    <button class="btn btn-success" @onclick="() => AddUsersToBasketItem(StateManagementService.Basket.UniqueBasketID, SelectedBasketItem.BasketItemID, SelectedUsers.Select(u => u.UserID).ToArray())">Add Delegates</button>
+                    <button class="btn btn-success" disabled=@(!SelectedUsers.Any()) @onclick="() => AddUsersToBasketItem(StateManagementService.Basket.UniqueBasketID, SelectedBasketItem.BasketItemID, SelectedUsers.Select(u => u.UserID).ToArray())">Add Delegates</button>
                 </div>
             </Footer>
         </CommercialSite.WebApp.App.Modals.AddDelegateModal>
@@ -390,15 +390,21 @@
         AvailableUsers = available;
     }
 
-    private void AddUser()
+    // Picking someone in the dropdown adds them straight to the list
+    private void OnUserSelected(ChangeEventArgs e)
     {
-        var user = SelectedBasketItem.AvailableUsers.SingleOrDefault(u => u.UserID == selectedUserID);
+        var userID = e.Value?.ToString();
+
+        var user = string.IsNullOrEmpty(userID) ? null : AvailableUsers.FirstOrDefault(u => u.UserID == userID);
+
+        selectedUserID = string.Empty;
+
+        if (user == null)
+            return;
 
         SelectedUsers.Add(user);
 
         AvailableUsers.Remove(user);
-
-        selectedUserID = null;
 
         StateHasChangedSafely();
     }
@@ -513,7 +519,8 @@
         background-color: white;
         border-radius: 8px;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        height: 68vh; /* 65% of the viewport height */
+        height: calc(100dvh - 22rem);
+        min-height: 10rem;
         display: flex; /* Optional: Helps with centering content */
         flex-direction: column; /* Stacks child elements vertically */
         justify-content: center; /* Optional: Centers content vertically */
@@ -562,15 +569,52 @@
     .sidebar {
         height: 100%;
         width: 0;
+        max-width: 100vw;
         position: fixed;
-        z-index: 1;
+        z-index: 1040;
         top: 0;
         right: 0; /* Change from left to right */
         background: linear-gradient(to bottom, #e3e3e0, white);
         overflow-x: hidden;
         padding: 0px;
         transition: width 0.5s ease;
-        overflow-y: hidden;
+        overflow-y: auto;
+    }
+
+    body.basket-open .sidebar {
+        width: 25rem;
+        box-shadow: -4px 0 16px rgba(0, 0, 0, 0.15);
+    }
+
+    #basket-scrim {
+        position: fixed;
+        inset: 0;
+        z-index: 1039;
+        background: rgba(15, 26, 53, 0.45);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+
+    body.basket-open #basket-scrim {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    /* Wide screens: basket sits beside the page instead of over it */
+    @@media (min-width: 1400px) {
+        body.basket-open #main-content {
+            padding-right: 25rem;
+        }
+
+        body.basket-open .sidebar {
+            box-shadow: none;
+        }
+
+        body.basket-open #basket-scrim {
+            opacity: 0;
+            pointer-events: none;
+        }
     }
 
     .subtotal-card{
@@ -578,7 +622,7 @@
         padding: 5px;
         border-radius: 8px;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        height: 8vh; /* 8% of the viewport height */
+        min-height: 4.5rem;
         display: flex; /* Optional: Helps with centering content */
         flex-direction: column; /* Stacks child elements vertically */
         justify-content: center; /* Optional: Centers content vertically */

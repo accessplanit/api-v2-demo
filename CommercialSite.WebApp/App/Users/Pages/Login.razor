@@ -78,6 +78,7 @@
                 if (user is not null){
                     user.ID = loginResponse.User.ID;
                     StateManagementService.SetLoggedInUser(user);
+                    await StateManagementService.PersistUserIdAsync(user.ID);
                     StateManagementService.Basket = await basketClient.GetBasketForUser(user.ID);
                 }
 
