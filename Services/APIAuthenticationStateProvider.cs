@@ -82,6 +82,7 @@ namespace Services
         public async Task MarkUserAsLoggedOut()
         {
             await _localStorage.RemoveItemAsync("authToken");
+            await _stateManagementService.ClearPersistedUserIdAsync();
 
             _httpClient.DefaultRequestHeaders.Authorization = null;
             NotifyAuthenticationStateChanged(Task.FromResult(_anonymous));

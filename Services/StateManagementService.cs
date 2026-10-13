@@ -109,6 +109,46 @@ namespace Services
             }
         }
 
+        private const string PersistedUserIdKey = "userId";
+
+        /// <summary>
+        /// Saves the logged-in user's ID so the session can be rebuilt after a browser reload.
+        /// </summary>
+        public async Task PersistUserIdAsync(string userId)
+        {
+            try
+            {
+                await _localStorage.SetItemAsStringAsync(PersistedUserIdKey, userId);
+            }
+            catch (InvalidOperationException)
+            {
+                // JS interop isn't available (prerender); the next login will save it.
+            }
+        }
+
+        public async Task<string?> GetPersistedUserIdAsync()
+        {
+            try
+            {
+                return await _localStorage.GetItemAsStringAsync(PersistedUserIdKey);
+            }
+            catch (InvalidOperationException)
+            {
+                return null;
+            }
+        }
+
+        public async Task ClearPersistedUserIdAsync()
+        {
+            try
+            {
+                await _localStorage.RemoveItemAsync(PersistedUserIdKey);
+            }
+            catch (InvalidOperationException)
+            {
+            }
+        }
+
         public void Logout()
         {
             LoggedInUser = null;
