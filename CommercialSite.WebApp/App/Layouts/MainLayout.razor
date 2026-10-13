@@ -4,6 +4,9 @@
 @inject StateManagementService StateManagementService
 @inject AccessPlanitAPIClient AccessPlanitAPIClient
 @inject AccessPlanitAPIBasketClient BasketClient
+@inject AccessPlanitTokenClient AccessPlanitTokenClient
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
 
 
 <div id="main-layout">
@@ -39,6 +42,21 @@
 
         IsLoggedIn = StateManagementService.IsLoggedIn;
         sessionChecked = true;
+
+        RedirectToLoginIfLoggedOut();
+    }
+
+    // Runs on every navigation, e.g. after logging out
+    protected override void OnParametersSet()
+    {
+        if (sessionChecked)
+            RedirectToLoginIfLoggedOut();
+    }
+
+    private void RedirectToLoginIfLoggedOut()
+    {
+        if (!StateManagementService.IsLoggedIn)
+            NavigationManager.NavigateTo("/login", replace: true);
     }
 
     // A reload starts a new circuit with empty state, so rebuild the user from the saved ID
@@ -54,6 +72,14 @@
 
             if (string.IsNullOrEmpty(userId))
                 return;
+
+            // The saved token may have expired since the last session, so get a fresh one first
+            var token = await AccessPlanitTokenClient.GetToken();
+
+            if (token is null)
+                return;
+
+            await ((ApiAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsAuthenticated(token);
 
             var user = await AccessPlanitAPIClient.GetById<User>(userId);
 

@@ -85,7 +85,7 @@
 				<QuickGrid Items="UsersElearningPackages">
 					<PropertyColumn Property="@(i => i.ID)" Sortable="true" />
 					<PropertyColumn Property="@(i => i.CourseName)" Title="Course Name" Sortable="true" />
-					<PropertyColumn Property="@(i => i.DateStamp)" Title="Date Enrolled" Sortable="true" />
+					<PropertyColumn Property="@(i => i.DateStamp)" Format="dd MMM yyyy" Title="Date Enrolled" Sortable="true" />
 					<PropertyColumn Property="@(i => i.DateFirstViewedDisplay)" Title="Date First Viewed" Sortable="true" />
 					<TemplateColumn>
 						<ChildContent Context="usersElearningPackage">
@@ -194,7 +194,7 @@
 		<div class="collapse multi-collapse w-100 card" id="collapseBookingsTable">
 			<QuickGrid Items="bookings">
 				<PropertyColumn Property="@(b => b.ID)" Sortable="true" />
-				<PropertyColumn Property="@(b => b.DateCreated)" Title="Date Created" Sortable="true" />
+				<TemplateColumn Title="Date Created" SortBy="@(GridSort<CourseDateBooking>.ByAscending(b => b.DateCreated))">@DateFormatting.Format(context.DateCreated)</TemplateColumn>
 				<PropertyColumn Property="@(b => b.BookingType)" Sortable="true" Title="Booking Type" />
 				<PropertyColumn Property="@(b => b.BookingUserName)" Sortable="true" Title="Booking User"/>
 				<PropertyColumn Property="@(b => b.BookingStatus)" Sortable="true" Title="Booking Status"/>

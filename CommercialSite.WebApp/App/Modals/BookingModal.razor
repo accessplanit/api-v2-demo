@@ -23,7 +23,7 @@
                             <div class="w-100 d-flex justify-content-between px-3 py-2 heading fw-bold show">Booking</div>
                             <div class="collapse multi-collapse show p-3">
                                 <p><strong>Reference:</strong> @BookingData.ID</p>
-                                <p><strong>Booking Date:</strong> @BookingData.DateCreated</p>
+                                <p><strong>Booking Date:</strong> @DateFormatting.Format(BookingData.DateCreated)</p>
                                 <p><strong>Booking Status</strong> @BookingData.BookingStatus</p>
                                 <p><strong>Booking Type</strong> @BookingData.BookingType</p>
                             </div>

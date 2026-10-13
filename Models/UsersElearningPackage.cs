@@ -18,7 +18,7 @@ public class UsersELearningPackage
     public string SuccessStatusText => SuccessStatus.ToString();
 
     public string DateFirstViewedDisplay
-        => DateFirstViewed == DateTime.MinValue ? "Not Started" : DateFirstViewed.ToString("g");
+        => DateFirstViewed == DateTime.MinValue ? "Not Started" : DateFirstViewed.ToString("dd MMM yyyy HH:mm");
 }
 
 public enum SuccessStatus

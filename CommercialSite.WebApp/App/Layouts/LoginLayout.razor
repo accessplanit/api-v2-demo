@@ -1,0 +1,41 @@
+@using CommercialSite.WebApp.App.SharedComponents
+
+@inherits LayoutComponentBase
+
+<div class="login-layout">
+    <img class="login-layout-logo" src="images/accessplanit_logo.svg" alt="accessplanit" />
+    <div class="login-layout-body">
+        <ErrorBanner />
+        @Body
+    </div>
+    <div class="login-layout-footer">Need help? Contact your training provider</div>
+</div>
+
+<style>
+    .login-layout {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
+        padding: 1.5rem 1rem;
+        background: #0f1a35;
+    }
+
+    .login-layout-logo {
+        height: 40px;
+        max-width: 80%;
+    }
+
+    .login-layout-body {
+        width: 100%;
+        max-width: 24rem;
+    }
+
+    .login-layout-footer {
+        color: #8fa0c9;
+        font-size: 0.85rem;
+        text-align: center;
+    }
+</style>
