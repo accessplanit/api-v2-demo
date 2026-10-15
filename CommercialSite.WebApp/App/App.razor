@@ -1,4 +1,6 @@
-﻿<!DOCTYPE html>
+﻿@inject IWebHostEnvironment Environment
+
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -22,7 +24,13 @@
     <Routes @rendermode="@(new InteractiveServerRenderMode(prerender: false))" />
     <script src="_framework/blazor.web.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="JavaScript.js"></script>
+    <script src="JavaScript.js?v=@ScriptVersion"></script>
 </body>
 
 </html>
+
+@code {
+    // Changes whenever the file does, so browsers never run a stale copy
+    private string ScriptVersion
+        => Environment.WebRootFileProvider.GetFileInfo("JavaScript.js").LastModified.UtcTicks.ToString();
+}

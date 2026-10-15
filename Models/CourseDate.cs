@@ -26,7 +26,7 @@ namespace Models
 
         public decimal Cost { get; set; }
 
-        public string DisplayCost => Cost.ToString("C");
+        public string DisplayCost => CurrencyFormatting.Format(Cost);
 
         public string VenueLabel { get; set; }
 

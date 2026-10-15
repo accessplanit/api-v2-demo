@@ -149,6 +149,38 @@ namespace Services
             }
         }
 
+        private const string LastActivityKey = "lastActivity";
+
+        /// <summary>
+        /// The time of the user's last activity in any tab, or null if none was recorded.
+        /// </summary>
+        public async Task<DateTimeOffset?> GetLastActivityAsync()
+        {
+            try
+            {
+                var stored = await _localStorage.GetItemAsStringAsync(LastActivityKey);
+
+                return long.TryParse(stored, out var milliseconds)
+                    ? DateTimeOffset.FromUnixTimeMilliseconds(milliseconds)
+                    : null;
+            }
+            catch (InvalidOperationException)
+            {
+                return null;
+            }
+        }
+
+        public async Task ClearLastActivityAsync()
+        {
+            try
+            {
+                await _localStorage.RemoveItemAsync(LastActivityKey);
+            }
+            catch (InvalidOperationException)
+            {
+            }
+        }
+
         public void Logout()
         {
             LoggedInUser = null;

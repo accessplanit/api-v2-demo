@@ -177,25 +177,39 @@ else
         await JS.InvokeVoidAsync("showAddItemToast");
     }
 
-    private async Task SearchCoursesByLabel(string searchLabel)
-    {
-        currentLabelFilter = searchLabel;
+    private const int FilterDebounceMilliseconds = 300;
 
-        await ApplyFilters();
-    }
+    // Each keystroke starts a slow API search, and the responses can finish out of order.
+    // filterVersion makes sure only the newest search is allowed to update the list.
+    private int filterVersion;
+    private CancellationTokenSource? filterDebounce;
 
-    private async Task SearchCoursesByCourseType(string courseType)
+    private async Task ApplyFiltersDebounced()
     {
-        currentCourseTypeFilter = courseType;
+        filterDebounce?.Cancel();
+        filterDebounce = new CancellationTokenSource();
+        var token = filterDebounce.Token;
+
+        try
+        {
+            await Task.Delay(FilterDebounceMilliseconds, token);
+        }
+        catch (TaskCanceledException)
+        {
+            return; // a newer keystroke replaced this one
+        }
 
         await ApplyFilters();
     }
 
     private async Task ApplyFilters()
     {
+        var version = ++filterVersion;
+
         if (string.IsNullOrWhiteSpace(currentLabelFilter) && string.IsNullOrWhiteSpace(currentCourseTypeFilter))
         {
             filteredCourses = courses;
+            filteredCourseDates = courseDates;
         }
         else
         {
@@ -204,26 +218,38 @@ else
                 courseType: string.IsNullOrWhiteSpace(currentCourseTypeFilter) ? null : currentCourseTypeFilter
             );
 
-            var courseDates = new List<CourseDate>();
+            var dates = new List<CourseDate>();
 
-            foreach(var course in coursesResult)
+            foreach (var course in coursesResult ?? new List<Course>())
             {
                 var courseDateResult = await AccessPlanitCourseDateClient.GetCourseDatesForCourseId(course.ID);
-                courseDates.AddRange(courseDateResult);
+                dates.AddRange(courseDateResult ?? new List<CourseDate>());
             }
 
+            // A newer search has started since this one did, so its result is out of date
+            if (version != filterVersion)
+                return;
+
             filteredCourses = coursesResult?.AsQueryable();
-            filteredCourseDates = courseDates?.AsQueryable();
+            filteredCourseDates = dates.AsQueryable();
         }
 
         StateHasChanged();
     }
 
-    private async void OnLabelFilterChanged(ChangeEventArgs e)
-        => await SearchCoursesByLabel(e.Value.ToString());
-    
-    private async void OnCourseTypeFilterChanged(ChangeEventArgs e)
-        => SearchCoursesByCourseType(e.Value.ToString());  
+    private async Task OnLabelFilterChanged(ChangeEventArgs e)
+    {
+        currentLabelFilter = e.Value?.ToString() ?? string.Empty;
+
+        await ApplyFiltersDebounced();
+    }
+
+    private async Task OnCourseTypeFilterChanged(ChangeEventArgs e)
+    {
+        currentCourseTypeFilter = e.Value?.ToString() ?? string.Empty;
+
+        await ApplyFilters();
+    }
 
     private string GetCourseTypeStyle(string courseType)
     {

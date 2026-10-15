@@ -90,3 +90,13 @@
 .login-button:disabled {
 	opacity: 0.7;
 }
+
+.login-notice {
+	margin-bottom: 1rem;
+	padding: 0.6rem 0.75rem;
+	border: 1px solid #b6d4fe;
+	border-radius: 8px;
+	background: #eaf2ff;
+	color: #0c447c;
+	font-size: 0.9rem;
+}

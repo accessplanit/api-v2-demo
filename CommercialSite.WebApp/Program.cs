@@ -1,4 +1,5 @@
 using Blazored.LocalStorage;
+using CommercialSite.WebApp;
 using CommercialSite.WebApp.App;
 using static CommercialSite.WebApp.Extensions;
 using static Constants.AccessPlanitAPIConfig;
@@ -10,6 +11,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddScoped<StateManagementService>();
+builder.Services.AddSingleton(SessionTimeoutSettings.FromConfiguration(builder.Configuration));
 
 builder.Services.AddBlazoredLocalStorage();
 

@@ -12,6 +12,11 @@
 <PageTitle>Sign in</PageTitle>
 
 <div class="login-card">
+    @if (Reason == "timeout")
+    {
+        <div class="login-notice" role="status">You were signed out because of inactivity. Sign in to continue.</div>
+    }
+
     <EditForm Model="LoginFormModel" OnValidSubmit="HandleLogin" FormName="LoginForm">
         <DataAnnotationsValidator />
 
@@ -57,6 +62,9 @@
 
 @code {
     private LoginForm? LoginFormModel { get; set; }
+
+    [SupplyParameterFromQuery(Name = "reason")]
+    public string? Reason { get; set; }
 
     private bool IsLoggingIn = false;
     private bool ShowPassword = false;

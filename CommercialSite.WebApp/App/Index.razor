@@ -26,7 +26,7 @@
         <div class="summary-tile"><small>Courses</small><strong>@((courses?.Count() ?? 0) + (WebCourses?.Count() ?? 0))</strong></div>
         <div class="summary-tile"><small>eLearning</small><strong>@(UsersElearningPackages?.Count() ?? 0)</strong></div>
         <div class="summary-tile"><small>Bookings</small><strong>@(bookings?.Count() ?? 0)</strong></div>
-        <div class="summary-tile"><small>Outstanding</small><strong>@((Invoices?.Sum(i => i.Outstanding) ?? 0).ToString("C2"))</strong></div>
+        <div class="summary-tile"><small>Outstanding</small><strong>@CurrencyFormatting.Format(Invoices?.Sum(i => i.Outstanding) ?? 0, Invoices?.FirstOrDefault()?.CurrencyCode)</strong></div>
     </div>
 
 	<div class="card mt-3">
@@ -53,9 +53,9 @@
 					<TemplateColumn Title="Status" SortBy="@(GridSort<Invoice>.ByAscending(i => i.Status))">
 							<span class="status-pill @(context.Outstanding > 0 ? "status-due" : "status-ok")">@context.Status</span>
 						</TemplateColumn>
-					<PropertyColumn Property="@(i => i.Amount)" Sortable="true" Title="Amount" Format="C2" Align="Align.Right" />
-					<PropertyColumn Property="@(i => i.AmountPaid)" Sortable="true" Title="Paid" Format="C2"  Align="Align.Right" />
-					<PropertyColumn Property="@(i => i.Outstanding)" Sortable="true" Title="Outstanding" Format="C2" Align="Align.Right" />
+					<TemplateColumn Title="Amount" Align="Align.Right" SortBy="@(GridSort<Invoice>.ByAscending(i => i.Amount))">@CurrencyFormatting.Format(context.Amount, context.CurrencyCode)</TemplateColumn>
+					<TemplateColumn Title="Paid" Align="Align.Right" SortBy="@(GridSort<Invoice>.ByAscending(i => i.AmountPaid))">@CurrencyFormatting.Format(context.AmountPaid, context.CurrencyCode)</TemplateColumn>
+					<TemplateColumn Title="Outstanding" Align="Align.Right" SortBy="@(GridSort<Invoice>.ByAscending(i => i.Outstanding))">@CurrencyFormatting.Format(context.Outstanding, context.CurrencyCode)</TemplateColumn>
 					<TemplateColumn>
 						<ChildContent Context="invoice">
 							<button class="btn btn-sm btn-primary" @onclick="@(() => ViewInvoice(invoice))">View Invoice</button>

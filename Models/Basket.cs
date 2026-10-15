@@ -14,6 +14,12 @@ namespace Models
 
         public string UniqueBasketID { get; set; }
 
+        public BillingTarget BillingTarget { get; set; }
+
+        public IEnumerable<BillingTarget> AvailableBillingUsers { get; set; }
+
+        public IEnumerable<BillingTarget> AvailableBillingCompanies { get; set; }
+
         public IEnumerable<BasketItem> Items { get; set; }
 
         public string LatestErrorMessage { get; set; }

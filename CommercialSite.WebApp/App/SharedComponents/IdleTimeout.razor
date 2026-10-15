@@ -1,0 +1,139 @@
+@inject IJSRuntime JS
+@inject StateManagementService StateManagementService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+@inject SessionTimeoutSettings Settings
+@implements IAsyncDisposable
+
+@if (showWarning)
+{
+    <div class="modal-backdrop fade show" style="z-index: 2000;"></div>
+    <div class="modal fade show d-block" style="z-index: 2001;" tabindex="-1" role="alertdialog" aria-modal="true" aria-labelledby="idle-title">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="idle-title">Are you still there?</h5>
+                </div>
+                <div class="modal-body">
+                    For your security, you'll be signed out in @secondsLeft seconds because there's been no activity.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" @onclick="SignOutNow">Sign out now</button>
+                    <button type="button" class="btn btn-primary" @onclick="StaySignedIn">Stay signed in</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private DotNetObjectReference<IdleTimeout>? selfReference;
+    private bool timerRunning;
+    private bool showWarning;
+    private int secondsLeft;
+
+    protected override void OnInitialized()
+        => StateManagementService.OnChange += HandleStateChanged;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            await SyncTimerAsync();
+    }
+
+    private void HandleStateChanged()
+        => InvokeAsync(async () =>
+        {
+            await SyncTimerAsync();
+            StateHasChanged();
+        });
+
+    // Runs only while someone is logged in
+    private async Task SyncTimerAsync()
+    {
+        try
+        {
+            if (StateManagementService.IsLoggedIn && !timerRunning)
+            {
+                selfReference ??= DotNetObjectReference.Create(this);
+                timerRunning = true;
+                await JS.InvokeVoidAsync("idleTimer.start", selfReference,
+                    (int)Settings.IdleTimeout.TotalMilliseconds, Settings.WarningSeconds * 1000);
+            }
+            else if (!StateManagementService.IsLoggedIn && timerRunning)
+            {
+                timerRunning = false;
+                showWarning = false;
+                await JS.InvokeVoidAsync("idleTimer.stop");
+            }
+        }
+        catch (JSDisconnectedException)
+        {
+            // The circuit is closing
+        }
+        catch (JSException ex)
+        {
+            // Usually a stale cached JavaScript.js. Don't let it end the circuit, but say so once.
+            StateManagementService.SetLatestErrorMessage($"The inactivity timer couldn't start. Refresh the page (Ctrl+F5). {ex.Message}");
+        }
+    }
+
+    [JSInvokable]
+    public Task OnIdleWarning(int seconds)
+    {
+        secondsLeft = seconds;
+        showWarning = true;
+        return InvokeAsync(StateHasChanged);
+    }
+
+    [JSInvokable]
+    public Task OnIdleReset()
+    {
+        showWarning = false;
+        return InvokeAsync(StateHasChanged);
+    }
+
+    [JSInvokable]
+    public async Task OnIdleTimeout()
+        => await SignOutAsync("timeout");
+
+    private async Task StaySignedIn()
+    {
+        showWarning = false;
+        await JS.InvokeVoidAsync("idleTimer.reset");
+    }
+
+    private async Task SignOutNow()
+        => await SignOutAsync(null);
+
+    private async Task SignOutAsync(string? reason)
+    {
+        timerRunning = false;
+        showWarning = false;
+
+        StateManagementService.Logout();
+        await ((ApiAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsLoggedOut();
+
+        await InvokeAsync(() =>
+        {
+            NavigationManager.NavigateTo(reason == null ? "/login" : $"/login?reason={reason}", replace: true);
+            StateHasChanged();
+        });
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        StateManagementService.OnChange -= HandleStateChanged;
+
+        try
+        {
+            if (timerRunning)
+                await JS.InvokeVoidAsync("idleTimer.stop");
+        }
+        catch (JSDisconnectedException)
+        {
+        }
+
+        selfReference?.Dispose();
+    }
+}

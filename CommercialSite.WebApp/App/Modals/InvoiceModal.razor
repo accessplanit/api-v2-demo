@@ -51,16 +51,16 @@
                                     <tr>
                                         <td>@item.DynamicLabel</td>
                                         <td style="text-align: right;">
-                                            @(item.Amount.Value > 0 ? (item.Amount.Value - item.Tax.Value).ToString("C") : "")
+                                            @(item.Amount.Value > 0 ? CurrencyFormatting.Format(item.Amount.Value - item.Tax.Value, InvoiceData.CurrencyCode) : "")
                                         </td>
                                         <td style="text-align: right;">
-                                            @(item.Tax.Value > 0 ? item.Tax.Value.ToString("C") : "")
+                                            @(item.Tax.Value > 0 ? CurrencyFormatting.Format(item.Tax.Value, InvoiceData.CurrencyCode) : "")
                                         </td>
                                         <td style="text-align: right;">
                                             @(item.Tax.Value > 0 ? (InvoiceData.TaxRate.ToString("F2") + "%") : "")
                                         </td>
                                         <td style="text-align: right;">
-                                            @(item.Amount.Value > 0 ? item.Amount.Value.ToString("C") : "")
+                                            @(item.Amount.Value > 0 ? CurrencyFormatting.Format(item.Amount.Value, InvoiceData.CurrencyCode) : "")
                                         </td>
                                     </tr>
                                 }
@@ -69,9 +69,9 @@
                         </div>
                         <hr />
                         <div style="text-align:right;">
-                            <h5><strong>Total: </strong>@InvoiceData.Amount.ToString("C")</h5>
-                            <h6><strong>Paid: </strong>@InvoiceData.AmountPaid.ToString("C")</h6>
-                            <h6><strong>Outstanding: </strong>@InvoiceData.Outstanding.ToString("C")</h6>
+                            <h5><strong>Total: </strong>@CurrencyFormatting.Format(InvoiceData.Amount, InvoiceData.CurrencyCode)</h5>
+                            <h6><strong>Paid: </strong>@CurrencyFormatting.Format(InvoiceData.AmountPaid, InvoiceData.CurrencyCode)</h6>
+                            <h6><strong>Outstanding: </strong>@CurrencyFormatting.Format(InvoiceData.Outstanding, InvoiceData.CurrencyCode)</h6>
                         </div>
                         
 

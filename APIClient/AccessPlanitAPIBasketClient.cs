@@ -177,6 +177,52 @@ namespace APIClient
             }
         }
 
+        public async Task<Basket> SetBillingTarget(string uniqueBasketID, BillingTarget target)
+        {
+            var requestUri = BaseUrl + $"/{uniqueBasketID}/billingtarget";
+
+            return await SendBasketUpdate(HttpMethod.Put, requestUri, target,
+                $"Something went wrong trying to set the billing target for Basket: {uniqueBasketID}.");
+        }
+
+        public async Task<Basket> UpdateItemCost(string uniqueBasketID, int itemID, decimal netPerUnit, decimal taxPerUnit)
+        {
+            var requestUri = BaseUrl + $"/{uniqueBasketID}/{itemID}/cost";
+
+            var costs = new UpdateBasketItemCost { NetPerUnit = netPerUnit, TaxPerUnit = taxPerUnit };
+
+            return await SendBasketUpdate(HttpMethod.Patch, requestUri, costs,
+                $"Something went wrong trying to update the cost of item {itemID} in Basket: {uniqueBasketID}.");
+        }
+
+        private async Task<Basket> SendBasketUpdate(HttpMethod method, string requestUri, object body, string failureMessage)
+        {
+            try
+            {
+                var request = new HttpRequestMessage(method, requestUri)
+                {
+                    Content = new StringContent(JsonConvert.SerializeObject(body), Encoding.UTF8, "application/json")
+                };
+
+                var response = await SendAsync(request);
+
+                if (response != null && response.IsSuccessStatusCode)
+                {
+                    var responseString = await response.Content.ReadAsStringAsync();
+
+                    return JsonConvert.DeserializeObject<Basket>(responseString);
+                }
+
+                StateManagementService.SetLatestErrorMessage(failureMessage);
+                return null;
+            }
+            catch (Exception ex)
+            {
+                StateManagementService.SetLatestErrorMessage($"Error: {ex.Message}");
+                return null;
+            }
+        }
+
         public async Task<bool> CompleteBasket(string uniqueBasketID)
         {
             var requestUri = BaseUrl + $"/{uniqueBasketID}/complete";

@@ -1,0 +1,554 @@
+@page "/basket"
+
+@inject StateManagementService StateManagementService
+@inject AccessPlanitAPIBasketClient BasketClient
+@implements IDisposable
+
+<PageTitle>Shopping Basket</PageTitle>
+
+<h2 class="mb-3">Shopping Basket</h2>
+
+@if (!string.IsNullOrEmpty(StatusMessage))
+{
+    <div class="alert alert-success alert-dismissible" role="status">
+        @StatusMessage
+        <button type="button" class="btn-close" aria-label="Close" @onclick="() => StatusMessage = string.Empty"></button>
+    </div>
+}
+
+@if (isLoading)
+{
+    <p>Loading...</p>
+}
+else if (!BasketHasItems())
+{
+    <div class="basket-card text-center text-secondary py-5">
+        <i class="lni lni-cart fs-1"></i>
+        <p class="mt-2 mb-0">Your basket is empty. Add a course from the Courses page.</p>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        <div class="col-lg-8">
+            @foreach (var item in StateManagementService.Basket.Items)
+            {
+                var isEditing = editingItemID == item.BasketItemID;
+
+                <div class="basket-card">
+                    <div class="d-flex justify-content-between gap-3">
+                        <div>
+                            <div class="fw-bold">@item.ItemName</div>
+                            @if (!string.IsNullOrWhiteSpace(item.ItemDescription))
+                            {
+                                <div class="text-secondary small">@item.ItemDescription</div>
+                            }
+                            <div class="text-secondary small">Quantity: @item.Quantity</div>
+                        </div>
+
+                        <div class="text-end">
+                            @if (isEditing)
+                            {
+                                <div class="cost-editor">
+                                    <label class="small text-secondary" for="net-@item.BasketItemID">Net per delegate</label>
+                                    <input id="net-@item.BasketItemID" type="number" step="0.01" min="0" class="form-control form-control-sm" @bind="editNet" @bind:event="oninput" />
+                                    <label class="small text-secondary" for="tax-@item.BasketItemID">Tax per delegate</label>
+                                    <input id="tax-@item.BasketItemID" type="number" step="0.01" min="0" class="form-control form-control-sm" @bind="editTax" @bind:event="oninput" />
+                                    <div class="small mt-1">Gross per delegate: <strong>@FormatMoney(item, editNet + editTax)</strong></div>
+                                    <div class="d-flex gap-2 justify-content-end mt-2">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="CancelEditCost">Cancel</button>
+                                        <button type="button" class="btn btn-sm btn-primary" @onclick="() => SaveCost(item)">Save price</button>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                @if (originalCosts.TryGetValue(item.BasketItemID, out var original))
+                                {
+                                    <div class="text-secondary text-decoration-line-through small">@FormatMoney(item, (original.Net + original.Tax) * Math.Max(item.Quantity, 1))</div>
+                                }
+                                <div class="fs-5 fw-bold">
+                                    @FormatMoney(item, item.UnitGross)
+                                    <button type="button" class="icon-button" aria-label="Edit price of @item.ItemName" @onclick="() => StartEditCost(item)">
+                                        <i class="lni lni-pencil"></i>
+                                    </button>
+                                </div>
+                                @if (item.Quantity > 1)
+                                {
+                                    <div class="small text-secondary">@FormatMoney(item, item.UnitGross / item.Quantity) each</div>
+                                }
+                                @if (originalCosts.ContainsKey(item.BasketItemID))
+                                {
+                                    <span class="badge bg-warning text-dark">Price edited</span>
+                                    <button type="button" class="btn btn-link btn-sm p-0 ms-1" @onclick="() => ResetCost(item)">Reset</button>
+                                }
+                            }
+                        </div>
+                    </div>
+
+                    @if (item.AssignedUsers != null && item.AssignedUsers.Any())
+                    {
+                        <div class="mt-3 d-flex flex-wrap gap-2">
+                            @foreach (var user in item.AssignedUsers)
+                            {
+                                <span class="delegate-chip">
+                                    @user.Forenames @user.Surname
+                                    <button type="button" class="icon-button" aria-label="Remove @user.Forenames @user.Surname" @onclick="() => RemoveUserFromItem(item, user)">
+                                        <i class="lni lni-close"></i>
+                                    </button>
+                                </span>
+                            }
+                        </div>
+                    }
+
+                    @if (item.AppliedDiscounts != null)
+                    {
+                        foreach (var discount in item.AppliedDiscounts)
+                        {
+                            <div class="d-flex justify-content-between text-danger small fw-bold mt-2">
+                                <span>@discount.Name</span>
+                                <span>@FormatMoney(discount.CurrencySymbol, discount.UnitGross)</span>
+                            </div>
+                        }
+                    }
+
+                    <div class="mt-3 d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => OpenAddDelegateModal(item)">Add delegates</button>
+                        <button type="button" class="btn btn-sm btn-outline-danger" @onclick="() => RemoveItem(item)">Remove</button>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="col-lg-4">
+            <div class="basket-card">
+                <h3 class="basket-card-title">Bill to</h3>
+                <select class="form-select" aria-label="Billing target" value="@CurrentBillingKey" @onchange="OnBillingTargetChanged" disabled="@isBusy">
+                    @if (StateManagementService.Basket.BillingTarget != null && !AllBillingTargets.Any(t => BillingKey(t) == CurrentBillingKey))
+                    {
+                        <option value="@CurrentBillingKey">@StateManagementService.Basket.BillingTarget.Name</option>
+                    }
+                    @if (StateManagementService.Basket.AvailableBillingUsers?.Any() == true)
+                    {
+                        <optgroup label="Individual">
+                            @foreach (var target in StateManagementService.Basket.AvailableBillingUsers)
+                            {
+                                <option value="@BillingKey(target)">@target.Name</option>
+                            }
+                        </optgroup>
+                    }
+                    @if (StateManagementService.Basket.AvailableBillingCompanies?.Any() == true)
+                    {
+                        <optgroup label="Company">
+                            @foreach (var target in StateManagementService.Basket.AvailableBillingCompanies)
+                            {
+                                <option value="@BillingKey(target)">@target.Name</option>
+                            }
+                        </optgroup>
+                    }
+                </select>
+                @if (StateManagementService.Basket.BillingTarget?.TaxExempt == true)
+                {
+                    <div class="small text-secondary mt-1">This billing target is tax exempt.</div>
+                }
+            </div>
+
+            <div class="basket-card">
+                <div class="input-group">
+                    <input class="form-control" type="text" placeholder="Enter discount code" aria-label="Discount code" @bind="DiscountCode" />
+                    <button type="button" class="btn btn-outline-primary" disabled="@(string.IsNullOrWhiteSpace(DiscountCode) || isBusy)" @onclick="AddDiscountToBasket">Apply</button>
+                </div>
+            </div>
+
+            <div class="basket-card">
+                <div class="d-flex justify-content-between"><span>Tax</span><span>@BasketTaxString()</span></div>
+                <div class="d-flex justify-content-between fw-bold mb-3"><span>Total</span><span>@BasketTotalString()</span></div>
+                <button type="button" class="btn btn-primary w-100" disabled="@isBusy" @onclick="CheckoutBasket">Checkout</button>
+            </div>
+        </div>
+    </div>
+}
+
+<CommercialSite.WebApp.App.Modals.AddDelegateModal @ref="addDelegateModal">
+    <Header>
+        @if (SelectedBasketItem != null)
+        {
+            <h5 class="modal-title">Add Delegates - @SelectedBasketItem.ItemName</h5>
+        }
+        <button type="button" class="badge bg-danger border-0" aria-label="Close" @onclick="CloseAddDelegateModal">X</button>
+    </Header>
+    <Body>
+        @if (SelectedUsers.Any())
+        {
+            <h4>Selected Users:</h4>
+            foreach (var user in SelectedUsers)
+            {
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span>@user.Forenames @user.Surname</span>
+                    <button type="button" class="badge bg-danger border-0" aria-label="Remove @user.Forenames @user.Surname" @onclick="() => RemoveSelectedUser(user)">X</button>
+                </div>
+            }
+        }
+        @if (SelectedBasketItem != null)
+        {
+            <select class="form-select mt-3" aria-label="Select a delegate to add" value="@selectedUserID" @onchange="OnUserSelected">
+                <option value="">Select user ...</option>
+                @foreach (var user in AvailableUsers)
+                {
+                    <option value="@user.UserID">@user.Forenames @user.Surname (@user.MainCompanyName) - @user.EmailAddress</option>
+                }
+            </select>
+        }
+    </Body>
+    <Footer>
+        <button type="button" class="btn btn-success" disabled="@(!SelectedUsers.Any())" @onclick="AddUsersToItem">Add Delegates</button>
+    </Footer>
+</CommercialSite.WebApp.App.Modals.AddDelegateModal>
+
+@code {
+    private bool isLoading = true;
+    private bool isBusy;
+    private string StatusMessage = string.Empty;
+    private string DiscountCode = string.Empty;
+
+    // Price editing
+    private int? editingItemID;
+    private decimal editNet;
+    private decimal editTax;
+    // Original unit costs of items edited in this session, so an edit can be reset
+    private readonly Dictionary<int, (decimal Net, decimal Tax)> originalCosts = new();
+
+    // Add delegates modal
+    private Modals.AddDelegateModal addDelegateModal = default!;
+    private BasketItem? SelectedBasketItem;
+    private List<BasketItemUser> SelectedUsers = new();
+    private List<BasketItemUser> AvailableUsers = new();
+    private string selectedUserID = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        StateManagementService.OnChange += StateHasChangedSafely;
+
+        if (StateManagementService.IsLoggedIn)
+        {
+            var basket = await BasketClient.GetBasketForUser(StateManagementService.LoggedInUser.ID);
+
+            if (basket != null)
+                StateManagementService.Basket = basket;
+        }
+
+        isLoading = false;
+    }
+
+    private void StateHasChangedSafely() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => StateManagementService.OnChange -= StateHasChangedSafely;
+
+    private bool BasketHasItems()
+        => StateManagementService.Basket?.Items?.Any() == true;
+
+    private string BasketID => StateManagementService.Basket.UniqueBasketID;
+
+    // Only replaces the basket when the API call succeeded (the client returns null on failure)
+    private void ApplyBasket(Models.Basket? updated)
+    {
+        if (updated != null)
+            StateManagementService.Basket = updated;
+    }
+
+    private async Task RunAsync(Func<Task> action)
+    {
+        isBusy = true;
+
+        try
+        {
+            await action();
+        }
+        finally
+        {
+            isBusy = false;
+        }
+    }
+
+    #region Billing target
+
+    private static string BillingKey(BillingTarget target) => $"{target.Type}|{target.ID}";
+
+    private string CurrentBillingKey
+        => StateManagementService.Basket.BillingTarget == null ? string.Empty : BillingKey(StateManagementService.Basket.BillingTarget);
+
+    private IEnumerable<BillingTarget> AllBillingTargets
+        => (StateManagementService.Basket.AvailableBillingUsers ?? Enumerable.Empty<BillingTarget>())
+            .Concat(StateManagementService.Basket.AvailableBillingCompanies ?? Enumerable.Empty<BillingTarget>());
+
+    private async Task OnBillingTargetChanged(ChangeEventArgs e)
+    {
+        var key = e.Value?.ToString();
+        var target = AllBillingTargets.FirstOrDefault(t => BillingKey(t) == key);
+
+        if (target == null)
+            return;
+
+        await RunAsync(async () =>
+        {
+            var updated = await BasketClient.SetBillingTarget(BasketID, target);
+
+            ApplyBasket(updated);
+
+            if (updated != null)
+                StatusMessage = $"Billing target set to {target.Name}.";
+        });
+    }
+
+    #endregion
+
+    #region Item costs
+
+    private void StartEditCost(BasketItem item)
+    {
+        editingItemID = item.BasketItemID;
+        editNet = PerUnit(item, item.UnitNet);
+        editTax = PerUnit(item, item.UnitTax);
+    }
+
+    private void CancelEditCost() => editingItemID = null;
+
+    // The basket's Unit* amounts cover the whole line (all delegates), while the cost endpoint works per unit
+    private static decimal PerUnit(BasketItem item, decimal lineAmount)
+        => Math.Round(lineAmount / Math.Max(item.Quantity, 1), 2);
+
+    private async Task SaveCost(BasketItem item)
+    {
+        if (editNet < 0 || editTax < 0)
+        {
+            StateManagementService.SetLatestErrorMessage("Net and tax per unit can't be negative.");
+            return;
+        }
+
+        var previous = (Net: PerUnit(item, item.UnitNet), Tax: PerUnit(item, item.UnitTax));
+
+        await RunAsync(async () =>
+        {
+            var updated = await BasketClient.UpdateItemCost(BasketID, item.BasketItemID, editNet, editTax);
+
+            if (updated == null)
+                return;
+
+            // Keep the first original so repeated edits can still be reset to it
+            originalCosts.TryAdd(item.BasketItemID, previous);
+
+            ApplyBasket(updated);
+            editingItemID = null;
+            StatusMessage = $"Price updated for {item.ItemName}.";
+        });
+    }
+
+    private async Task ResetCost(BasketItem item)
+    {
+        if (!originalCosts.TryGetValue(item.BasketItemID, out var original))
+            return;
+
+        await RunAsync(async () =>
+        {
+            var updated = await BasketClient.UpdateItemCost(BasketID, item.BasketItemID, original.Net, original.Tax);
+
+            if (updated == null)
+                return;
+
+            originalCosts.Remove(item.BasketItemID);
+            ApplyBasket(updated);
+            StatusMessage = $"Price reset for {item.ItemName}.";
+        });
+    }
+
+    #endregion
+
+    #region Items, discounts and checkout
+
+    private async Task RemoveItem(BasketItem item)
+        => await RunAsync(async () =>
+        {
+            var updated = await BasketClient.RemoveItemFromBasket(BasketID, item.BasketItemID);
+
+            if (updated == null)
+                return;
+
+            originalCosts.Remove(item.BasketItemID);
+            ApplyBasket(updated);
+            StatusMessage = "Item removed.";
+        });
+
+    private async Task RemoveUserFromItem(BasketItem item, BasketItemUser user)
+        => await RunAsync(async () =>
+        {
+            var updated = await BasketClient.RemoveUserFromBasketItem(BasketID, item.BasketItemID, user.UserID);
+
+            ApplyBasket(updated);
+
+            if (updated != null)
+                StatusMessage = "Delegate removed.";
+        });
+
+    private async Task AddDiscountToBasket()
+        => await RunAsync(async () =>
+        {
+            var updated = await BasketClient.AddItemToBasket(StateManagementService.LoggedInUser.ID, DiscountCode.Trim(), 14);
+
+            ApplyBasket(updated);
+            DiscountCode = string.Empty;
+        });
+
+    private async Task CheckoutBasket()
+        => await RunAsync(async () =>
+        {
+            var success = await BasketClient.CompleteBasket(BasketID);
+
+            if (!success)
+                return;
+
+            originalCosts.Clear();
+            StateManagementService.Basket = null;
+            StatusMessage = "Purchase completed.";
+        });
+
+    #endregion
+
+    #region Add delegates
+
+    private void OpenAddDelegateModal(BasketItem item)
+    {
+        SelectedBasketItem = item;
+        SelectedUsers = new List<BasketItemUser>();
+        AvailableUsers = (item.AvailableUsers ?? Enumerable.Empty<BasketItemUser>()).ToList();
+        selectedUserID = string.Empty;
+        addDelegateModal.Open();
+    }
+
+    private void CloseAddDelegateModal()
+    {
+        SelectedBasketItem = null;
+        SelectedUsers = new List<BasketItemUser>();
+        AvailableUsers = new List<BasketItemUser>();
+        addDelegateModal.Close();
+    }
+
+    // Picking someone in the dropdown adds them straight to the list
+    private void OnUserSelected(ChangeEventArgs e)
+    {
+        var userID = e.Value?.ToString();
+        var user = string.IsNullOrEmpty(userID) ? null : AvailableUsers.FirstOrDefault(u => u.UserID == userID);
+
+        selectedUserID = string.Empty;
+
+        if (user == null)
+            return;
+
+        SelectedUsers.Add(user);
+        AvailableUsers.Remove(user);
+    }
+
+    private void RemoveSelectedUser(BasketItemUser user)
+    {
+        SelectedUsers.Remove(user);
+        AvailableUsers.Add(user);
+    }
+
+    private async Task AddUsersToItem()
+    {
+        // An empty list would reset the item's quantity to 0 on the API
+        if (SelectedBasketItem == null || !SelectedUsers.Any())
+            return;
+
+        var item = SelectedBasketItem;
+        var userIDs = SelectedUsers.Select(u => u.UserID).ToArray();
+
+        await RunAsync(async () =>
+        {
+            var updated = await BasketClient.AddUsersToBasketItem(BasketID, item.BasketItemID, userIDs);
+
+            ApplyBasket(updated);
+            CloseAddDelegateModal();
+
+            if (updated != null)
+                StatusMessage = "Delegates added.";
+        });
+    }
+
+    #endregion
+
+    #region Totals
+
+    private static string FormatMoney(string? symbol, decimal amount)
+        // The API can return the symbol HTML-encoded (e.g. &#163;), and Razor would escape it again
+        => $"{System.Net.WebUtility.HtmlDecode(symbol)}{amount:0.00}";
+
+    private static string FormatMoney(BasketItem item, decimal amount)
+        => FormatMoney(item.CurrencySymbol, amount);
+
+    private string CurrencySymbol
+        => StateManagementService.Basket.Items.First().CurrencySymbol;
+
+    private decimal DiscountSum(Func<BasketItemDiscount, decimal> selector)
+        => StateManagementService.Basket.Items.Sum(i => (i.AppliedDiscounts ?? Enumerable.Empty<BasketItemDiscount>()).Sum(selector));
+
+    private string BasketTaxString()
+    {
+        var tax = StateManagementService.Basket.Items.Sum(i => i.UnitTax) + DiscountSum(d => d.UnitTax);
+
+        return FormatMoney(CurrencySymbol, tax);
+    }
+
+    private string BasketTotalString()
+    {
+        var total = StateManagementService.Basket.Items.Sum(i => i.UnitGross) + DiscountSum(d => d.UnitGross);
+
+        return FormatMoney(CurrencySymbol, total);
+    }
+
+    #endregion
+}
+
+<style>
+    .basket-card {
+        background: #fff;
+        border: 1px solid #E5E7EB;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+
+    .basket-card-title {
+        margin: 0 0 0.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .cost-editor {
+        min-width: 12rem;
+        text-align: left;
+    }
+
+    .icon-button {
+        border: none;
+        background: transparent;
+        padding: 0 0.25rem;
+        color: #5b6475;
+        cursor: pointer;
+    }
+
+    .icon-button:hover {
+        color: #258cfb;
+    }
+
+    .delegate-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.15rem 0.6rem;
+        border: 1px solid #cdd1da;
+        border-radius: 999px;
+        background: #fff;
+        font-size: 0.85rem;
+    }
+</style>

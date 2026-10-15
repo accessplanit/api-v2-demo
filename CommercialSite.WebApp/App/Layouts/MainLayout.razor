@@ -7,6 +7,7 @@
 @inject AccessPlanitTokenClient AccessPlanitTokenClient
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
+@inject SessionTimeoutSettings SessionSettings
 
 
 <div id="main-layout">
@@ -21,12 +22,13 @@
         </div>
         <div id="content" class="m-4">
             <ErrorBanner />
-            @if (sessionChecked)
+            @if (sessionChecked && StateManagementService.IsLoggedIn)
             {
                 @Body
             }
         </div>
         <CommercialSite.WebApp.App.Basket.ShoppingBasket/>
+        <IdleTimeout />
     </div>
 </div>
 
@@ -35,6 +37,7 @@
     public bool IsLoggedIn { get; set; }
 
     private bool sessionChecked;
+    private bool sessionExpired;
 
     protected override async Task OnInitializedAsync()
     {
@@ -56,7 +59,7 @@
     private void RedirectToLoginIfLoggedOut()
     {
         if (!StateManagementService.IsLoggedIn)
-            NavigationManager.NavigateTo("/login", replace: true);
+            NavigationManager.NavigateTo(sessionExpired ? "/login?reason=timeout" : "/login", replace: true);
     }
 
     // A reload starts a new circuit with empty state, so rebuild the user from the saved ID
@@ -72,6 +75,18 @@
 
             if (string.IsNullOrEmpty(userId))
                 return;
+
+            // A reload must not bring back a session that has been idle for too long
+            var lastActivity = await StateManagementService.GetLastActivityAsync();
+
+            if (lastActivity is null || DateTimeOffset.UtcNow - lastActivity > SessionSettings.IdleTimeout)
+            {
+                await StateManagementService.ClearPersistedUserIdAsync();
+                await StateManagementService.ClearLastActivityAsync();
+                await ((ApiAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsLoggedOut();
+                sessionExpired = true;
+                return;
+            }
 
             // The saved token may have expired since the last session, so get a fresh one first
             var token = await AccessPlanitTokenClient.GetToken();
