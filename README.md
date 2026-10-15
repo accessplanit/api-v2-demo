@@ -1,8 +1,8 @@
 
 # Blazor Server Demo — Integrating with Accessplanit API v2
 
-A commercial demonstration showing how a **.NET 8 Blazor Server** application integrates with **Accessplanit API v2** to read and write training management data (e.g., courses, delegates, users), including best practices for authentication, querying, and error handling.\
-This demonstration also includes an example of how to build your own basket and trainer portal.
+A commercial demonstration showing how a **.NET 9 Blazor Server** application integrates with **Accessplanit API v2** to read and write training management data (e.g., courses, delegates, users), including best practices for authentication, querying, and error handling.\
+This demonstration also includes an example of how to build your own customer portal and shopping basket, including a full-page basket that shows how to **amend basket item costs** and **set a basket's billing target**.
 **Note:** This demo does **not** include webhooks.
 
 > Accessplanit v2 developer resources cover authentication (token or API keys), query parameters like `$select/$filter/$orderby/$top/$skip`, standard HTTP verbs, and response codes. See the official docs for details.\
@@ -21,7 +21,10 @@ This demonstration also includes an example of how to build your own basket and 
 - [Getting Started](#getting-started)
 - [Configuration](#configuration)
 - [Running the App](#running-the-app)
+- [What the Demo Includes](#what-the-demo-includes)
 - [Accessplanit API Basics](#accessplanit-api-basics)
+- [Basket API](#basket-api)
+- [Sessions and Inactivity Timeout](#sessions-and-inactivity-timeout)
 - [Usage Examples](#usage-examples)
 - [Security & Compliance](#security--compliance)
 - [Troubleshooting](#troubleshooting)
@@ -36,6 +39,8 @@ This Blazor Server demo is built for **sales engineering and partner enablement*
 - **Query patterns** with `$select`, `$filter`, `$orderby` to retrieve precise datasets efficiently. \[Developer Resources]
 - **Create/Update/Delete** patterns (POST/PUT/DELETE) and **upsert** where supported. \[Developer Resources]
 - Clean separation of **UI** (Blazor components) and **API** access layer (typed `HttpClient` services).
+- A **customer portal** (invoices, courses, eLearning, bookings and account details) and **shopping basket** (side panel and full page).
+- **Basket features** for adding delegates, applying discount codes, changing the **billing target** and amending **item costs**.
 
 > Accessplanit’s v2 feeds (launched 2025) provide broader platform coverage and field access compared to v1. \[Overview]
 
@@ -43,7 +48,7 @@ This Blazor Server demo is built for **sales engineering and partner enablement*
 
 ## Architecture
 **Tech stack:**
-- **Frontend:** Blazor Server + Bootstrap
+- **Frontend:** Blazor Server (.NET 9) + Bootstrap
 - **Backend:** .NET API Client
 - **Auth:** Bearer token or API key, supplied by Accessplanit (stored securely) \[Developer Resources]
 - **Data:** Typed DTOs for Users, Companies, Courses, Delegates (aligned with v2 feed packages) \[Modules]
@@ -52,7 +57,8 @@ This Blazor Server demo is built for **sales engineering and partner enablement*
 1. User signs in to the demo using the API v2 login endpoint.
 2. See **AccessPlanitTokenClient.cs** on how to obtain an API Bearer Token or use an API Key.
 3. Server-side services add the **Accessplanit** auth header (Bearer token or API key) and call v2 endpoints. \[Developer Resources]
-4. Responses are shaped using `$select/$filter`, paged via `$top/$skip`, and presented in Blazor components. \[Developer Resources]
+4. Responses are shaped using `$select/$filter` and presented in Blazor components. Grids sort and page in the browser.
+5. Baskets are handled by the separate basket API (see [Basket API](#basket-api)).
 
 ---
 
@@ -62,8 +68,8 @@ This Blazor Server demo is built for **sales engineering and partner enablement*
 ---
 
 ## Prerequisites
-- Microsoft Visual Studio 2022 **(Minimum)** or Microsoft Visual Studio Code
-- **.NET 8 SDK**
+- Microsoft Visual Studio 2022 (17.12 or later) **(Minimum)** or Microsoft Visual Studio Code
+- **.NET 9 SDK**
 - An **Accessplanit v2 API** subscription and credentials (token or API key). Contact your Accessplanit CSM if you need access. \[Modules]
 
 ---
@@ -72,7 +78,7 @@ This Blazor Server demo is built for **sales engineering and partner enablement*
 ```bash
 # Clone
 git clone https://github.com/accessplanit/api-v2-demo.git
-cd CommercialSite.WebApp
+cd api-v2-demo/CommercialSite.WebApp
 
 # Restore & build
 dotnet restore
@@ -89,7 +95,11 @@ Configure via AccessPlanitAPIConfig in Constants
 Configure via AccessPlanitTokenClient in APIClient
 - `SuperAPIUserID` — User ID of the service user you have set up to communicate with the API. \[Developer Resources]
 - `SuperAPIPassword` — Password of the above user. \[Developer Resources]
-- `SuperUserAPIKey` — API key if using API key auth (keep secret). \[Developer Resources]
+- `SuperUserAPIKey` — API key if using API key auth (keep secret). \[Developer Resources] The demo signs in with the service user's username and password by default. To use an API key instead, call `GetAPIKeyAsToken()` in place of `GetToken()`.
+
+Configure via `appsettings.json` in CommercialSite.WebApp
+- `Session:IdleTimeoutMinutes` — Minutes of inactivity before a user is signed out (default `15`).
+- `Session:WarningSeconds` — How long the "are you still there?" warning shows before sign-out (default `60`).
 
 > **Credentials & roles:** You’ll be provided a **username/ID** and **password** for an account with required roles; use these either to **generate a token** or to log in and create an **API key**. \[Developer Resources]
 
@@ -99,7 +109,22 @@ Open a terminal and navigate to the folder **api-v2-demo\CommercialSite.WebApp**
 # Development (Blazor Server)
 dotnet run 
 ```
-Open `https://localhost:5001` (or as shown in console).
+Open `https://localhost:7228` (or `http://localhost:5252`), or the address shown in the console.
+
+---
+
+## What the Demo Includes
+| Page | Route | What it shows |
+|---|---|---|
+| Sign in | `/login` | Signing in through the API v2 login endpoint, on its own layout. |
+| My Portal | `/` | Invoices, eLearning, courses, web courses and bookings for the signed-in user. |
+| Courses | `/courses` | Searching courses, viewing dates and adding a date to the basket. |
+| My Account | `/account` | Reading and updating the signed-in user's details. |
+| Shopping Basket | `/basket` | A full-page basket for **amending item costs** and **setting the billing target**. |
+
+The side basket (the **Basket** button in the header) covers the everyday basket actions. The full-page basket adds the two features that show off the basket API:
+- **Billing target** — choose who the basket is billed to from the individuals and companies the API returns on the basket (`AvailableBillingUsers` and `AvailableBillingCompanies`).
+- **Item costs** — change the net and tax per delegate for a basket item, and reset it to the original.
 
 ---
 
@@ -114,6 +139,8 @@ This demo implements a URL Builder found in Services > FluentUrlBuilder.cs
 - `$top`: page size
 - `$skip`: pagination offset \[Developer Resources]
 
+> `FluentUrlBuilder` can build all of these. The demo's own pages use `$select` and `$filter`, and sort and page the grids in the browser.
+
 **API Packages (common modules)**
 - **Users & Accounts:** Users, Companies, Company Groups
 - **Courses & Delegates:** Course Dates, Delegates, Course Templates
@@ -125,37 +152,61 @@ Accessplanit **v2** (launched 2025) offers broader platform coverage and field a
 ---
 
 ## Usage Examples
-> Replace placeholders with your tenant-specific base URL and endpoints.
+The API clients in the **APIClient** project wrap the v2 endpoints. Each model maps to an API module, and the client builds the URL from the module name.
 
-### 1) List upcoming course dates (paged & filtered)
-**GET** `/courses/dates?$select=Id,Title,StartDate,Status&$filter=StartDate ge 2025-01-01&$orderby=StartDate asc&$top=25&$skip=0`\
-Headers: `Authorization: Bearer <Accessplanit__Token>` **or** ` <Accessplanit__ApiKey>` \[Developer Resources]
-
-### 2) Create a new delegate (POST)
-**POST** `/delegates`
-```json
-{
-  "UserId": 12345,
-  "CourseDateId": 67890,
-  "Status": "Registered",
-  "Notes": "Demo enrolment via Blazor"
-}
+### 1) Query with `$select` and `$filter`
+```csharp
+var invoices = await invoiceClient.GetByCriteria<Invoice>(
+    [new Filter("targetid", FilterExpressions.Equals, userID)],
+    ["id", "reference", "amount", "outstanding", "status"]);
 ```
+This sends a **GET** to the Invoice module with `$select` and `$filter=targetid eq '<userID>'`.
 
-### 3) Update a user (PUT)
-**PUT** `/users/12345`
-```json
+### 2) Update a user (PUT)
+```csharp
+await userClient.UpdateUser(userID, new Dictionary<string, object>
 {
-  "FirstName": "Alex",
-  "LastName": "Doe",
-  "Email": "alex.doe@example.com"
-}
+    { "Forenames", "Alex" },
+    { "Surname", "Doe" },
+    { "Email", "alex.doe@example.com" }
+});
 ```
+Only the properties that changed are sent. See `User.GetUpdatedProperties` and the My Account page.
 
-### 4) Upsert (Insert or Update)
-**POST (Upsert)** `/users` — If record exists, update; otherwise insert. \[Developer Resources]
+### 3) Create and delete
+`Create<T>` sends a **POST** with the model as JSON, and `Delete` sends a **DELETE** for an ID. Both are on `AccessPlanitAPIClientBase`.
 
-> The demo includes a **Query Builder** that assembles `$select/$filter/$orderby/$top/$skip` parameters and shows request/response pairs to aid learning and sales conversations. \[Developer Resources]
+> `FluentUrlBuilder` assembles the query string (`$select`, `$filter`, `$orderby`, `$top`, `$skip`) for every request.
+
+---
+
+## Basket API
+Baskets use a separate service under `/apibasket/v2/basket` (see `BaseBasketAddress` in AccessPlanitAPIConfig). The client is `AccessPlanitAPIBasketClient`.
+
+| Action | Verb and route | Body |
+|---|---|---|
+| Get a user's basket | `GET /{userID}` | |
+| Add an item or discount code | `POST /{userID}/{itemID}/{IDType}` | |
+| Remove an item | `DELETE /{basketID}/{itemID}` | |
+| Add delegates to an item | `PUT /{basketID}/{itemID}/users` | JSON array of user IDs |
+| Remove a delegate | `DELETE /{basketID}/{itemID}/{userID}` | |
+| Set the billing target | `PUT /{basketID}/billingtarget` | `{ "Type": "Company", "ID": "...", "Name": "...", "TaxExempt": false }` |
+| Amend an item's cost | `PATCH /{basketID}/{itemID}/cost` | `{ "NetPerUnit": 66.00, "TaxPerUnit": 13.00 }` |
+| Complete the basket | `POST /{basketID}/complete` | |
+
+Things to know:
+- Every update returns the whole updated basket, which the demo uses to replace its copy.
+- A basket item's `UnitNet`, `UnitTax` and `UnitGross` cover the **whole line** (all delegates). The cost endpoint takes amounts **per unit**, so the full-page basket divides by quantity when it shows the edit form.
+- An item's quantity follows its delegate count. Sending an empty delegate list resets the quantity to 0, so the demo never sends one.
+- The currency symbol on a basket item can come back HTML-encoded (for example `&#163;`).
+
+---
+
+## Sessions and Inactivity Timeout
+- The API token and the signed-in user's ID are kept in the browser's local storage, so a page reload restores the session (a new token is requested on restore).
+- Users are signed out after a period of inactivity (`Session:IdleTimeoutMinutes`, default 15 minutes), with a warning countdown beforehand. Activity in any open tab counts.
+- A reload after the idle period does not restore the session. The user is returned to the sign-in page.
+- The countdown runs in the browser. For a hard guarantee, also expire the API tokens on a similar schedule.
 
 ---
 
