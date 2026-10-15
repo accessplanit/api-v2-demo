@@ -2,7 +2,7 @@
 {
     public static class AccessPlanitAPIConfig
     {
-		public static string RootURI = "csmdemo.accessplanit.com/accessplan";
+		public static string RootURI = "yourtenant.accessplanit.com/accessplan";
 
 		public static string BaseAddress = $"https://{RootURI}/api/v2/";
 
