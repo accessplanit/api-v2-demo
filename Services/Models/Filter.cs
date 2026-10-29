@@ -18,5 +18,8 @@ namespace Services.Models
             PropertyName = propertyName;
             FilterValue = filterValue;
         }
+
+        public static Filter IsNull(string propertyName)
+            => new Filter(propertyName, FilterExpressions.IsNull, string.Empty);
     }
 }

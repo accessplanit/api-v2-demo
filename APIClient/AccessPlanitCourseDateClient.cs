@@ -45,6 +45,41 @@ namespace APIClient
             }
         }                
 
+        public async Task<CourseDate?> GetBookableDateForELearningCourse(string courseId)
+        {
+            var filters = new List<Filter>
+            {
+                new Filter(GetPropertyName<CourseDate>(c => c.CourseID), FilterExpressions.Equals, courseId),
+                Filter.IsNull(GetPropertyName<CourseDate>(c => c.UserID))
+            };
+
+            var request = new HttpRequestMessage(HttpMethod.Get,
+                MakeRequestUrl<CourseDate>()
+                .AddQuery(query: QueryOperations.Filter, filters: filters)
+                .ToUrlString()
+                );
+
+            try
+            {
+                var response = await SendAsync(request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var results = await ConvertResponseCollection<CourseDate>(response);
+
+                    return results?.OrderByDescending(cd => int.TryParse(cd.ID, out var id) ? id : 0).FirstOrDefault();
+                }
+
+                StateManagementService.SetLatestErrorMessage("Something went wrong trying to communicate with the API");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                StateManagementService.SetLatestErrorMessage($"Error: {ex.Message}");
+                return null;
+            }
+        }
+
         public async Task<List<CourseDate>?> GetCourseDates()
         {
             var request = new HttpRequestMessage(HttpMethod.Get,

@@ -63,21 +63,30 @@ else
                                 @((MarkupString)course.Description)
                             </div>
                             <div>
-                                <button class="btn @(visibleGrids.ContainsKey(course.ID) && visibleGrids[course.ID] ? "btn-secondary" : "btn-primary")" @onclick="() => ToggleGridVisibility(course.ID)">
-                                    @if (visibleGrids.ContainsKey(course.ID) && visibleGrids[course.ID])
-                                    {
-                                        <text>Hide Dates</text>
-                                    }
-                                    else
-                                    {
-                                        <text>Show Dates</text>
-                                    }
-                                </button>
+                                @if (course.CourseType == ELearningCourseType)
+                                {
+                                    <button class="btn btn-success" @onclick="() => AddELearningCourseToBasket(course.ID)">
+                                        Book
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button class="btn @(visibleGrids.ContainsKey(course.ID) && visibleGrids[course.ID] ? "btn-secondary" : "btn-primary")" @onclick="() => ToggleGridVisibility(course.ID)">
+                                        @if (visibleGrids.ContainsKey(course.ID) && visibleGrids[course.ID])
+                                        {
+                                            <text>Hide Dates</text>
+                                        }
+                                        else
+                                        {
+                                            <text>Show Dates</text>
+                                        }
+                                    </button>
+                                }
                             </div>
                         </div>
                     </div>
 
-                    @if (visibleGrids.ContainsKey(course.ID) && visibleGrids[course.ID])
+                    @if (course.CourseType != ELearningCourseType && visibleGrids.ContainsKey(course.ID) && visibleGrids[course.ID])
                     {
                         <div class="p-4 pt-0 w-100 dates-wrap">
                             <QuickGrid Items="filteredCourseDates.Where(cd => cd.CourseID == course.ID)" Pagination="@GetPaginationState(course.ID)" style="width: 100%">
@@ -107,6 +116,8 @@ else
 
 @code {
     [Inject] private IJSRuntime JS { get; set; } = default!;
+
+    private const string ELearningCourseType = "ELearning";
 
     PaginationState pagination = new PaginationState { ItemsPerPage = 5 };
     Dictionary<string, PaginationState> paginationStates = new();
@@ -146,6 +157,8 @@ else
             courses = (courseResult ?? new List<Course>()).AsQueryable();
             filteredCourses = courses;
 
+            var elearn = courseResult.Where(c => c.CourseType == "ELearning");
+
             var courseDateResult = await AccessPlanitCourseDateClient.GetAll<CourseDate>();
             courseDates = (courseDateResult ?? new List<CourseDate>()).AsQueryable();
             filteredCourseDates = courseDates;
@@ -167,6 +180,19 @@ else
 
     private bool GetRowExpanded(Course course)
         => ExpandedRows.ContainsKey(course) && ExpandedRows[course];
+
+    private async Task AddELearningCourseToBasket(string courseID)
+    {
+        var bookableDate = await AccessPlanitCourseDateClient.GetBookableDateForELearningCourse(courseID);
+
+        if (bookableDate is null)
+        {
+            StateManagementService.SetLatestErrorMessage("This course is not currently available to book.");
+            return;
+        }
+
+        await AddItemToBasket(bookableDate.ID);
+    }
 
     private async Task AddItemToBasket(string itemID)
     {

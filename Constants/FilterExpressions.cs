@@ -10,7 +10,8 @@
         GreaterThanOrEqual,
         Contains,
         StartsWith,
-        EndsWith
+        EndsWith,
+        IsNull
     }
 
     public static class FilterExpressionsExtensions
@@ -24,6 +25,7 @@
         const string Contains = "contains";
         const string StartsWith = "startswith";
         const string EndsWith = "endswith";
+        const string IsNull = "eq";
 
         public static string? ToFilterExpressionString(this FilterExpressions? filter)
         {
@@ -40,6 +42,7 @@
                     FilterExpressions.Contains => Contains,
                     FilterExpressions.StartsWith => StartsWith,
                     FilterExpressions.EndsWith => EndsWith,
+                    FilterExpressions.IsNull => IsNull,
                     _ => throw new ArgumentOutOfRangeException(nameof(filter), filter, null)
                 };
             }
@@ -60,6 +63,7 @@
                 FilterExpressions.Contains => Contains,
                 FilterExpressions.StartsWith => StartsWith,
                 FilterExpressions.EndsWith => EndsWith,
+                FilterExpressions.IsNull => IsNull,
                 _ => throw new ArgumentOutOfRangeException(nameof(filter), filter, null)
             };
         }

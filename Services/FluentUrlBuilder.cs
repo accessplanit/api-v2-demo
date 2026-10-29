@@ -326,6 +326,9 @@ namespace Services
                 case FilterExpressions.EndsWith:
                     filterQuery += $"{filterExpressionString} ({propertyName}, '{filterValue}')";
                     break;
+                case FilterExpressions.IsNull:
+                    filterQuery += $"{propertyName} {filterExpressionString} null";
+                    break;
             }
 
             return filterQuery;

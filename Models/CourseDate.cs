@@ -14,6 +14,8 @@ namespace Models
 
         public string CourseID { get; set; }
 
+        public string? UserID { get; set; }
+
         public string CompanyName { get; set; }
 
         public DateTime StartDate { get; set; }
